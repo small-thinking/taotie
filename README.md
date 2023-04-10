@@ -1,4 +1,4 @@
-# taotie
+# Tao Tie (饕餮)
 Let taotie be your helper to consume the information.
 
-![饕餮](./taotie.jpg "Tao Tie")
+![饕餮](./taotie.png "Tao Tie")
