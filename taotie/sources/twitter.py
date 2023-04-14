@@ -5,12 +5,13 @@ from typing import List
 
 import requests
 import tweepy
-from tweepy import Response, StreamRule
+from tweepy import StreamingClient, StreamRule
 
+from taotie.sources.base import BaseSource
 from taotie.utils import *
 
 
-class TwitterSubscriber(tweepy.StreamingClient):
+class TwitterSubscriber(StreamingClient, BaseSource):
     """Listen to Twitter stream according to the rules.
 
     Args:
@@ -24,9 +25,10 @@ class TwitterSubscriber(tweepy.StreamingClient):
         rules: List[str],
         **kwargs,
     ):
+        BaseSource.__init__(self)
         load_dotenv()
         self.bearer_token = os.getenv("BEARER_TOKEN")
-        super().__init__(self.bearer_token, **kwargs)
+        StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
         self.logger = Logger(os.path.basename(__file__))
         self.cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
@@ -40,9 +42,6 @@ class TwitterSubscriber(tweepy.StreamingClient):
 
     def on_tweet(self, tweet):
         print(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
-
-    def run(self):
-        self.filter(threaded=True)
 
     def cleanup(self):
         # Fetch all rules.
@@ -67,7 +66,10 @@ class TwitterSubscriber(tweepy.StreamingClient):
                 response = self.delete_rules(rule_ids)
                 self.logger.info(f"Deleted rules: {response}")
 
+    def run(self):
+        self.filter(threaded=True)
+
 
 rules = ["from:RetroSummary", "#GPT", "#llm"]
 subscriber = TwitterSubscriber(rules=rules)
-subscriber.run()
+subscriber.start()
