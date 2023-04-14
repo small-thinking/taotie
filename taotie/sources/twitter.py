@@ -28,6 +28,7 @@ class TwitterSubscriber(tweepy.StreamingClient):
         self.bearer_token = os.getenv("BEARER_TOKEN")
         super().__init__(self.bearer_token, **kwargs)
         self.logger = Logger(os.path.basename(__file__))
+        self.cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
         atexit.register(self.cleanup)
 
@@ -38,7 +39,7 @@ class TwitterSubscriber(tweepy.StreamingClient):
         self.logger.info(f"Add rules: {response}")
 
     def on_tweet(self, tweet):
-        print(f"{datetime.now()} (Author: {tweet.author_id}): {tweet.text}")
+        print(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
 
     def run(self):
         self.filter(threaded=True)
@@ -63,5 +64,10 @@ class TwitterSubscriber(tweepy.StreamingClient):
             rule_ids = []
             if "data" in response:
                 rule_ids = [rule["id"] for rule in response["data"]]
-            response = self.delete_rules(rule_ids)
-            self.logger.info(f"Deleted rules: {response}")
+                response = self.delete_rules(rule_ids)
+                self.logger.info(f"Deleted rules: {response}")
+
+
+rules = ["from:RetroSummary", "#GPT", "#llm"]
+subscriber = TwitterSubscriber(rules=rules)
+subscriber.run()
