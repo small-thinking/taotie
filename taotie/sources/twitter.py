@@ -68,8 +68,3 @@ class TwitterSubscriber(StreamingClient, BaseSource):
 
     def run(self):
         self.filter(threaded=True)
-
-
-rules = ["from:RetroSummary", "#GPT", "#llm"]
-subscriber = TwitterSubscriber(rules=rules)
-subscriber.start()
