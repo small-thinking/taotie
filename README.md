@@ -1,6 +1,13 @@
 # Tao Tie (饕餮)
 Let taotie be your helper to consume the information.
 
-![饕餮](./taotie.png "Tao Tie")
+<p align="center">
+    <img src="taotie.png" alt="drawing"/>
+</p>
 
-![The architecture of TaoTie](./architecture.png "Architecture")
+
+
+<p align="center">
+    <img src="architecture.png" alt="drawing"/>
+    <br>The architecture of TaoTie
+</p>
