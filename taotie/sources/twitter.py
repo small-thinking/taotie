@@ -1,10 +1,11 @@
 from datetime import datetime
+from queue import Queue
 from typing import List
 
 import requests
 from tweepy import StreamRule
 
-from taotie.sources.base import BaseSource
+from taotie.sources.base import BaseSource, Information
 
 
 class TwitterSubscriber(BaseSource):
@@ -19,10 +20,13 @@ class TwitterSubscriber(BaseSource):
     def __init__(
         self,
         rules: List[str],
+        sink: Queue,
+        verbose: bool = False,
         **kwargs,
     ):
-        BaseSource.__init__(self, **kwargs)
+        BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.add_filter_rules(rules)
+        self.logger.info(f"Twitter subscriber initialized.")
 
     def add_filter_rules(self, rules: List[str]):
         """Add rules to filter the stream."""
@@ -31,7 +35,11 @@ class TwitterSubscriber(BaseSource):
         self.logger.info(f"Add rules: {response}")
 
     def on_tweet(self, tweet):
-        print(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
+        self.logger.debug(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
+        tweet = Information(
+            type="tweet", timestamp=tweet.created_at, id=id, text=tweet.text
+        )
+        self._send_data(tweet)
 
     def _cleanup(self):
         # Fetch all rules.
@@ -60,6 +68,7 @@ class TwitterSubscriber(BaseSource):
         self.filter(threaded=True)
 
 
-rules = ["from:RetroSummary", "#GPT", "#llm"]
-subscriber = TwitterSubscriber(rules=rules)
-subscriber.start()
+# queue = Queue()
+# rules = ["from:RetroSummary", "from:RunGreatClasses", "#GPT", "#llm"]
+# subscriber = TwitterSubscriber(rules=rules, sink=queue, verbose=True)
+# subscriber.start()

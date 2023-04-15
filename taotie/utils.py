@@ -32,6 +32,19 @@ class Logger:
 
         self.logger.addHandler(self.console_handler)
 
+    def output(self, message: str, color: Fore = Fore.GREEN) -> None:
+        print(color + message + Fore.RESET)
+
+    def debug(self, message: str) -> None:
+        if not self.verbose:
+            return
+        caller_frame = inspect.stack()[1]
+        caller_name = caller_frame[3]
+        caller_line = caller_frame[2]
+        self.logger.debug(
+            Fore.MAGENTA + f"({caller_name} L{caller_line}): {message}" + Fore.RESET
+        )
+
     def info(self, message: str) -> None:
         if not self.verbose:
             return
