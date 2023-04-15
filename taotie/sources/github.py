@@ -50,12 +50,25 @@ class GithubEvent(BaseSource):
                 )
                 repo_star = star_and_fork[0].text.strip()
                 repo_fork = star_and_fork[1].text.strip()
+                # Extract the detailed description from the github main README.md if any.
+                readme_url = (
+                    f"https://raw.githubusercontent.com{repo_name}/master/README.md"
+                )
+                repo_readme = ""
+                try:
+                    readme_response = requests.get(readme_url)
+                    if readme_response.status_code == 200:
+                        repo_readme = readme_response.text[:2000]
+                except Exception as e:
+                    pass
+
                 github_event = Information(
                     type="github-repo",
                     datetime_str=get_datetime(),
                     id=repo_name,
                     repo_url=repo_url,
                     repo_desc=repo_desc,
+                    repo_readme=repo_readme,
                     repo_lang=repo_lang,
                     repo_star=repo_star,
                     repo_fork=repo_fork,

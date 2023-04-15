@@ -27,7 +27,7 @@ class SummaryConsumer(Consumer):
         self.buffer = []
         self.buffer_size = kwargs.get("buffer_size") or 800
         self.language = kwargs.get("language") or "English"
-        self.max_tokens = kwargs.get("max_tokens") or 500
+        self.max_tokens = kwargs.get("max_tokens") or 800
 
     async def process(self, messages):
         self.buffer.extend(messages)
@@ -69,10 +69,10 @@ class SummaryConsumer(Consumer):
 
 def create_info_printer():
     verbose = True
-    batch_size = 5
+    batch_size = 1
     fetch_interval = 10
     mq = SimpleMessageQueue()
-    consumer = SummaryConsumer(buffer_size=1000, verbose=verbose, language="Chinese")
+    consumer = SummaryConsumer(buffer_size=1000, verbose=verbose)
     gatherer = Gatherer(
         message_queue=mq,
         consumer=consumer,

@@ -1,9 +1,9 @@
 import inspect
 import logging
-import time
 from datetime import datetime
 from typing import Any
 
+import requests
 from colorama import Fore
 from dotenv import load_dotenv
 
@@ -27,6 +27,16 @@ def get_datetime(timestamp: float = None) -> str:
     if not timestamp:
         timestamp = datetime.now().timestamp()
     return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def fetch_url_content(url: str):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text.strip()
+    else:
+        raise Exception(
+            f"Failed to fetch Markdown content from {url}, status code: {response.status_code}"
+        )
 
 
 # Create a logger class that accept level setting.
