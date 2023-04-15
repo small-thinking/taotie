@@ -56,7 +56,7 @@ class SummaryConsumer(Consumer):
 def create_info_printer():
     verbose = True
     queue = Queue()
-    consumer = SummaryConsumer(buffer_size=1000, language="Chinese")
+    consumer = SummaryConsumer(buffer_size=1000)
     gatherer = Gatherer(
         queue=queue, consumer=consumer, fetch_interval=5, verbose=verbose
     )

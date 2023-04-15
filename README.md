@@ -15,3 +15,13 @@ Let taotie be your helper to consume the information.
 ## Examples:
 
 ### 1. Subscribe from twitter stream and github trend, and then print.
+The example code can be seen in [examples/info_printer.py](examples/info_printer.py)
+
+This example shows how to subscribe from twitter stream and github trend, and then summarize the information in batch.
+
+The example output can be seen as follows:
+
+<p align="center">
+    <img src="./examples/info_summarizer.png" alt="drawing"/>
+    <br>Output of the info summarizer example
+</p>
