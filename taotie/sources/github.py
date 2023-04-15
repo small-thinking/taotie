@@ -1,9 +1,9 @@
 import time
-from queue import Queue
 
 import requests
 from bs4 import BeautifulSoup
 
+from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource, Information
 from taotie.utils import get_datetime
 
@@ -17,7 +17,7 @@ class GithubEvent(BaseSource):
         event (str): Github event.
     """
 
-    def __init__(self, sink: Queue, verbose: bool = False, **kwargs):
+    def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.url = "https://github.com/trending?since=daily.json"
         self.logger.info(f"Github event initialized.")
@@ -61,5 +61,5 @@ class GithubEvent(BaseSource):
                     repo_fork=repo_fork,
                 )
                 self._send_data(github_event)
-                self.logger.debug(f"{idx}: {github_event}")
+                self.logger.debug(f"{idx}: {github_event.encode()}")
             time.sleep(60)
