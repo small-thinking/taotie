@@ -3,8 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from queue import Queue
 from threading import Thread
-
-from tweepy import StreamingClient
+from typing import Any, Dict
 
 from taotie.utils import *
 
@@ -14,14 +13,22 @@ class Information:
     The only required fields are type, id and timestamp. The rest of the fields are optional.
     """
 
-    def __init__(self, type: str, id: str, timestamp: str, **kwargs):
-        self.data = {"type": type, "id": id, "timestamp": timestamp, **kwargs}
+    def __init__(self, type: str, id: str, datetime_str: str, **kwargs):
+        self.data: Dict[str, Any] = {
+            "type": type,
+            "id": id,
+            "datetime": datetime_str,
+            **kwargs,
+        }
+
+    def __repr__(self):
+        return str(self.data)
 
     def __str__(self):
         return str(self.data)
 
 
-class BaseSource(ABC, Thread, StreamingClient):
+class BaseSource(ABC, Thread):
     """Base class for all sources.
 
     This class is used to provide a common interface for all sources. It
@@ -33,12 +40,11 @@ class BaseSource(ABC, Thread, StreamingClient):
         Thread.__init__(self)
         load_dotenv()
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
-        self.bearer_token = os.getenv("BEARER_TOKEN")
-        StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
+        # self.bearer_token = os.getenv("BEARER_TOKEN")
+        # StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
         if not sink:
             raise ValueError("The sink cannot be None.")
         self.sink = sink
-        self._cleanup()  # Do a pre-cleanup.
         atexit.register(self._cleanup)
 
     def __str__(self):

@@ -2,7 +2,9 @@
 
 """
 from abc import ABC, abstractmethod
+from typing import List
 
+from taotie.sources.base import Information
 from taotie.utils import Logger
 
 
@@ -12,11 +14,12 @@ class Consumer(ABC):
     orchestrator such as a langchain application.
     """
 
-    def __init__(self, verbose: bool = False):
+    def __init__(self, verbose: bool = False, **kwargs):
         self.verbose = verbose
         self.logger = Logger(logger_name=__name__, verbose=verbose)
+        self.kwargs = kwargs
 
     @abstractmethod
-    async def process(self, message):
+    async def process(self, messages: List[Information]):
         """Process the message."""
         raise NotImplementedError

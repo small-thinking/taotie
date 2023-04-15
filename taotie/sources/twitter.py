@@ -1,14 +1,17 @@
+import os
+import time
 from datetime import datetime
 from queue import Queue
 from typing import List
 
 import requests
-from tweepy import StreamRule
+from tweepy import StreamingClient, StreamRule
 
 from taotie.sources.base import BaseSource, Information
+from taotie.utils import get_datetime
 
 
-class TwitterSubscriber(BaseSource):
+class TwitterSubscriber(BaseSource, StreamingClient):
     """Listen to Twitter stream according to the rules.
 
     Args:
@@ -25,6 +28,9 @@ class TwitterSubscriber(BaseSource):
         **kwargs,
     ):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
+        self.bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
+        StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
+        self._cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
         self.logger.info(f"Twitter subscriber initialized.")
 
@@ -37,7 +43,10 @@ class TwitterSubscriber(BaseSource):
     def on_tweet(self, tweet):
         self.logger.debug(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
         tweet = Information(
-            type="tweet", timestamp=tweet.created_at, id=id, text=tweet.text
+            type="tweet",
+            datetime_str=tweet.created_at or get_datetime(),
+            id=tweet.id,
+            text=tweet.text,
         )
         self._send_data(tweet)
 
@@ -66,9 +75,3 @@ class TwitterSubscriber(BaseSource):
 
     def run(self):
         self.filter(threaded=True)
-
-
-# queue = Queue()
-# rules = ["from:RetroSummary", "from:RunGreatClasses", "#GPT", "#llm"]
-# subscriber = TwitterSubscriber(rules=rules, sink=queue, verbose=True)
-# subscriber.start()
