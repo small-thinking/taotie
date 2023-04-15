@@ -1,7 +1,6 @@
 """The main entry to collect the information from all the sources.
 """
 import argparse
-import asyncio
 import os
 from queue import Queue
 from threading import Thread

@@ -1,6 +1,6 @@
 """The simplest consumer that prints the message to the console.
 """
-from taotie.consumer.consumer import Consumer
+from taotie.consumer.base import Consumer
 
 
 class PrintConsumer(Consumer):

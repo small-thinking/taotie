@@ -5,7 +5,7 @@ import time
 from queue import Queue
 from threading import Thread
 
-from taotie.consumer.consumer import Consumer
+from taotie.consumer.base import Consumer
 from taotie.utils import Logger
 
 
