@@ -14,7 +14,7 @@ class Gatherer(Thread):
 
     def __init__(
         self,
-        queue: Queue,
+        message_queue: Queue,
         consumer: Consumer,
         batch_size: int = 1,
         fetch_interval: int = 5,
@@ -31,7 +31,7 @@ class Gatherer(Thread):
         """
         Thread.__init__(self)
         self.logger = Logger(logger_name=__name__, verbose=verbose)
-        self.queue = queue
+        self.message_queue = message_queue
         self.batch_size = batch_size
         self.verbose = verbose
         self.comsumer = consumer
@@ -45,13 +45,12 @@ class Gatherer(Thread):
 
     async def _execute(self):
         while True:
-            if self.queue.empty():
+            while self.message_queue.empty():
+                self.logger.info(
+                    f"No messages, wait for {self.fetch_interval} seconds."
+                )
                 await asyncio.sleep(self.fetch_interval)
-            fetch_count = 0
-            messages = []
-            while not self.queue.empty() and fetch_count < self.batch_size:
-                fetch_count += 1
-                messages.append(self.queue.get())
-                self.queue.task_done()
-            self.logger.info(f"Received: {len(messages)} {messages}")
-            asyncio.create_task(self.comsumer.process(messages))
+            else:
+                messages = self.message_queue.get(batch_size=self.batch_size)
+                self.logger.info(f"Gathered: {len(messages)} {messages}")
+                asyncio.create_task(self.comsumer.process(messages))

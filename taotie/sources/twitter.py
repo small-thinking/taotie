@@ -1,12 +1,11 @@
 import os
-import time
 from datetime import datetime
-from queue import Queue
 from typing import List
 
 import requests
 from tweepy import StreamingClient, StreamRule
 
+from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource, Information
 from taotie.utils import get_datetime
 
@@ -23,7 +22,7 @@ class TwitterSubscriber(BaseSource, StreamingClient):
     def __init__(
         self,
         rules: List[str],
-        sink: Queue,
+        sink: MessageQueue,
         verbose: bool = False,
         **kwargs,
     ):

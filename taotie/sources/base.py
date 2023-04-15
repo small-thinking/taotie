@@ -1,10 +1,11 @@
 import atexit
+import json
 import os
 from abc import ABC, abstractmethod
-from queue import Queue
 from threading import Thread
 from typing import Any, Dict
 
+from taotie.message_queue import MessageQueue
 from taotie.utils import *
 
 
@@ -22,10 +23,13 @@ class Information:
         }
 
     def __repr__(self):
-        return str(self.data)
+        raise NotImplementedError
 
     def __str__(self):
-        return str(self.data)
+        raise NotImplementedError
+
+    def encode(self):
+        return json.dumps(self.data, ensure_ascii=False)
 
 
 class BaseSource(ABC, Thread):
@@ -36,7 +40,7 @@ class BaseSource(ABC, Thread):
 
     """
 
-    def __init__(self, sink: Queue, verbose: bool = False, **kwargs):
+    def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         Thread.__init__(self)
         load_dotenv()
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
@@ -62,7 +66,7 @@ class BaseSource(ABC, Thread):
         Args:
             information (Information): The data to send.
         """
-        self.sink.put(information)
+        self.sink.put(information.encode())
 
     @abstractmethod
     def run(self):
