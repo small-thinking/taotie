@@ -11,3 +11,7 @@ Let taotie be your helper to consume the information.
     <img src="architecture.png" alt="drawing"/>
     <br>The architecture of TaoTie
 </p>
+
+## Examples:
+
+### 1. Subscribe from twitter stream and github trend, and then print.

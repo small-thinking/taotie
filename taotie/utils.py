@@ -1,5 +1,7 @@
 import inspect
 import logging
+import time
+from datetime import datetime
 from typing import Any
 
 from colorama import Fore
@@ -11,6 +13,20 @@ def load_env(env_file_path: str = "") -> None:
         load_env(env_file_path)
     else:
         load_dotenv()
+
+
+def get_datetime(timestamp: float = None) -> str:
+    """Convert the timestamp to datetime string.
+
+    Args:
+        timestamp (float): The timestamp to convert.
+
+    Returns:
+        str: The datetime string.
+    """
+    if not timestamp:
+        timestamp = datetime.now().timestamp()
+    return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
 
 # Create a logger class that accept level setting.

@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from taotie.sources.base import BaseSource, Information
+from taotie.utils import get_datetime
 
 
 class GithubEvent(BaseSource):
@@ -51,7 +52,7 @@ class GithubEvent(BaseSource):
                 repo_fork = star_and_fork[1].text.strip()
                 github_event = Information(
                     type="github-repo",
-                    timestamp=time.time(),
+                    datetime_str=get_datetime(),
                     id=repo_name,
                     repo_url=repo_url,
                     repo_desc=repo_desc,
@@ -62,7 +63,3 @@ class GithubEvent(BaseSource):
                 self._send_data(github_event)
                 self.logger.debug(f"{idx}: {github_event}")
             time.sleep(60)
-
-
-# github = GithubEvent()
-# github.run()
