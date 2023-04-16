@@ -49,7 +49,7 @@ class NotionStorage(Storage):
             # Create a new database.
             parent = {"page_id": self.root_page_id}
             properties = {
-                "ID": {"title": {}},
+                "Title": {"title": {}},
                 "Type": {"select": {}},
                 "Created Time": {"date": {}},
                 "Summary": {"rich_text": {}},
@@ -118,6 +118,3 @@ async def run():
         root_page_id="987fd186553e4d2682e9a1de441a37ba", verbose=True
     )
     await notion.save(data)
-
-
-run()
