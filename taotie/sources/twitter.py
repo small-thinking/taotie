@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 import requests
-from tweepy import StreamingClient, StreamRule
+from tweepy import StreamingClient, StreamRule  # type: ignore
 
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource, Information
@@ -31,7 +31,7 @@ class TwitterSubscriber(BaseSource, StreamingClient):
         StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
         self._cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
-        self.batch = []
+        self.batch: List[Information] = []
         self.batch_send_size = kwargs.get("batch_send_size", 5)
         self.logger.info(f"Twitter subscriber initialized.")
 

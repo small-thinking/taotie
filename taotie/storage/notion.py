@@ -2,7 +2,7 @@
 """
 import datetime
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from notion_client import AsyncClient
 
@@ -24,7 +24,7 @@ class NotionStorage(Storage):
             raise ValueError("Please set the Notion token in .env.")
         self.notion = AsyncClient(auth=self.token)
         self.root_page_id = root_page_id
-        self.database_id = None
+        self.database_id: Optional[str] = None
         self.logger.info("Notion storage initialized.")
 
     async def save(self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
@@ -48,7 +48,7 @@ class NotionStorage(Storage):
         else:
             # Create a new database.
             parent = {"page_id": self.root_page_id}
-            properties = {
+            properties: Dict[str, Any] = {
                 "Title": {"title": {}},
                 "Type": {"select": {}},
                 "Created Time": {"date": {}},
