@@ -15,6 +15,7 @@ openai = "^0.27.4"
 flask = "^2.2.3"
 unstructured = "^0.5.12"
 notion-client = "^2.0.0"
+pre-commit = "^3.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.0"
