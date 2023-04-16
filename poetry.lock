@@ -1199,6 +1199,21 @@ files = [
 setuptools = "*"
 
 [[package]]
+name = "notion-client"
+version = "2.0.0"
+description = "Python client for the official Notion API"
+category = "main"
+optional = false
+python-versions = ">=3.7, <4"
+files = [
+    {file = "notion-client-2.0.0.tar.gz", hash = "sha256:c87ad58ad58085c4a1a619b61f9634c4b12c2b3af18e9cac78c32cebaa2046dd"},
+    {file = "notion_client-2.0.0-py2.py3-none-any.whl", hash = "sha256:793fc0fd3e6cb61a4b386349bf314583a7d2713e5ee9586c9391feeb20a3b2f2"},
+]
+
+[package.dependencies]
+httpx = ">=0.15.0"
+
+[[package]]
 name = "numpy"
 version = "1.23.5"
 description = "NumPy is the fundamental package for array computing with Python."
@@ -2308,4 +2323,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "038812fc11dbc90334ec1b45313a02c1a1548065f397fd4c7132321a82d18298"
+content-hash = "ecb089c3258466629acb99879a35e8d14a00cd48c935777fe2b1844b5278517f"
