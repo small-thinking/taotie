@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 import requests
-from tweepy import StreamingClient, StreamRule
+from tweepy import StreamingClient, StreamRule  # type: ignore
 
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource, Information

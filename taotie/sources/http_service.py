@@ -3,7 +3,7 @@
 
 import requests
 from flask import Flask, jsonify, request
-from unstructured.partition.html import partition_html
+from unstructured.partition.html import partition_html  # type: ignore
 
 from taotie.message_queue import MessageQueue, SimpleMessageQueue
 from taotie.sources.base import BaseSource, Information

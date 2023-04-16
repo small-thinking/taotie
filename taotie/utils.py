@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 import pytz
 import requests
-from colorama import Fore
+from colorama import Fore, ansi
 from dotenv import load_dotenv
 
 
@@ -60,7 +60,7 @@ class Logger:
 
         self.logger.addHandler(self.console_handler)
 
-    def output(self, message: str, color: Fore = Fore.GREEN) -> None:
+    def output(self, message: str, color: str = ansi.Fore.GREEN) -> None:
         print(color + message + Fore.RESET)
 
     def debug(self, message: str) -> None:

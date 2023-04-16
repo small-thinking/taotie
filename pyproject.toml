@@ -16,7 +16,6 @@ flask = "^2.2.3"
 unstructured = "^0.5.12"
 notion-client = "^2.0.0"
 pre-commit = "^3.2.2"
-types-requests = "^2.28.11.17"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.0"
@@ -25,6 +24,10 @@ flake8 = "^6.0.0"
 isort = "^5.12.0"
 mypy = "^1.2.0"
 pre-commit = "^3.2.2"
+types-requests = "^2.28.11.17"
+types-pytz = "^2023.3.0.0"
+types-beautifulsoup4 = "^4.12.0.3"
+types-colorama = "^0.4.15.11"
 
 [build-system]
 requires = ["poetry-core"]
