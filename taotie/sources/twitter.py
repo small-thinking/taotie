@@ -31,6 +31,8 @@ class TwitterSubscriber(BaseSource, StreamingClient):
         StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
         self._cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
+        self.batch = []
+        self.batch_send_size = kwargs.get("batch_send_size", 5)
         self.logger.info(f"Twitter subscriber initialized.")
 
     def add_filter_rules(self, rules: List[str]):
@@ -47,7 +49,10 @@ class TwitterSubscriber(BaseSource, StreamingClient):
             id=tweet.id,
             text=tweet.text,
         )
-        self._send_data(tweet)
+        self.batch.append(tweet)
+        if len(self.batch) >= self.batch_send_size:
+            map(lambda tweet: self._send_data(tweet), self.batch)
+            self.batch.clear()
 
     def _cleanup(self):
         # Fetch all rules.

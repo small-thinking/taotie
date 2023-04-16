@@ -1,9 +1,10 @@
 """Gather data from different sources and use the consumer to process the received messages.
 """
 import asyncio
-import time
+import json
 from queue import Queue
 from threading import Thread
+from typing import Any, Dict, List
 
 from taotie.consumer.base import Consumer
 from taotie.utils import Logger
@@ -52,5 +53,11 @@ class Gatherer(Thread):
                 await asyncio.sleep(self.fetch_interval)
             else:
                 messages = self.message_queue.get(batch_size=self.batch_size)
+                messages = await self._filter(messages)
                 self.logger.info(f"Gathered: {len(messages)} {messages}")
                 asyncio.create_task(self.comsumer.process(messages))
+
+    async def _filter(self, messages: List[str]) -> List[Dict[str, Any]]:
+        """Filter the messages."""
+        parsed_messages = list(map(lambda x: json.loads(x), messages))
+        return parsed_messages

@@ -8,7 +8,7 @@ from taotie.sources.base import BaseSource, Information
 from taotie.utils import get_datetime
 
 
-class GithubEvent(BaseSource):
+class GithubTrends(BaseSource):
     """Listen to Github events.
 
     Args:
@@ -21,6 +21,7 @@ class GithubEvent(BaseSource):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.url = "https://github.com/trending?since=daily.json"
         self.logger.info(f"Github event initialized.")
+        self.readme_truncate_size = kwargs.get("readme_truncate_size", 2000)
 
     def _cleanup(self):
         pass
@@ -54,13 +55,12 @@ class GithubEvent(BaseSource):
                 readme_url = (
                     f"https://raw.githubusercontent.com{repo_name}/master/README.md"
                 )
-                repo_readme = ""
                 try:
                     readme_response = requests.get(readme_url)
                     if readme_response.status_code == 200:
-                        repo_readme = readme_response.text[:2000]
+                        repo_readme = readme_response.text[: self.readme_truncate_size]
                 except Exception as e:
-                    pass
+                    repo_readme = ""
 
                 github_event = Information(
                     type="github-repo",
