@@ -44,8 +44,6 @@ class BaseSource(ABC, Thread):
         Thread.__init__(self)
         load_dotenv()
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
-        # self.bearer_token = os.getenv("BEARER_TOKEN")
-        # StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
         if not sink:
             raise ValueError("The sink cannot be None.")
         self.sink = sink

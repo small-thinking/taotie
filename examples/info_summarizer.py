@@ -1,7 +1,9 @@
 """The main entry to collect the information from all the sources.
 """
 import asyncio
+import json
 import os
+from typing import Any, Dict, List
 
 from colorama import Fore
 
@@ -9,7 +11,7 @@ from taotie.consumer.base import Consumer
 from taotie.gatherer import Gatherer
 from taotie.message_queue import SimpleMessageQueue
 from taotie.orchestrator import Orchestrator
-from taotie.sources.github import GithubEvent
+from taotie.sources.github import GithubTrends
 from taotie.sources.twitter import TwitterSubscriber
 
 try:
@@ -21,17 +23,17 @@ except ImportError:
 class SummaryConsumer(Consumer):
     """A consumer that summarize the message in batch."""
 
-    def __init__(self, verbose: bool = False, **kwargs):
-        Consumer.__init__(self, verbose=verbose)
+    def __init__(self, verbose: bool = False, dedup: bool = False, **kwargs):
+        Consumer.__init__(self, verbose=verbose, dedup=dedup)
+        self.buffer, self.buffer_size = [], 0
+        self.max_buffer_size = kwargs.get("max_buffer_size", 800)
+        self.language = kwargs.get("language", "English")
+        self.max_tokens = kwargs.get("max_tokens", 800)
         self.logger.info("PrintConsumer initialized.")
-        self.buffer = []
-        self.buffer_size = kwargs.get("buffer_size") or 800
-        self.language = kwargs.get("language") or "English"
-        self.max_tokens = kwargs.get("max_tokens") or 800
 
-    async def process(self, messages):
-        self.buffer.extend(messages)
-        if len("".join(self.buffer)) > self.buffer_size:
+    async def _process(self, messages: List[Dict[str, Any]]):
+        self.buffer.extend(map(lambda m: json.dumps(m), messages))
+        if len("".join(self.buffer)) > self.max_buffer_size:
             concatenated_messages = "\n".join(self.buffer)
             self.logger.info(f"Raw information: {concatenated_messages}\n")
             asyncio.create_task(self.gpt_summary(concatenated_messages))
@@ -72,7 +74,7 @@ def create_info_printer():
     batch_size = 1
     fetch_interval = 10
     mq = SimpleMessageQueue()
-    consumer = SummaryConsumer(buffer_size=1000, verbose=verbose)
+    consumer = SummaryConsumer(buffer_size=1000, verbose=verbose, dedup=True)
     gatherer = Gatherer(
         message_queue=mq,
         consumer=consumer,
@@ -82,10 +84,18 @@ def create_info_printer():
     )
 
     # Twitter source.
-    rules = ["from:RetroSummary", "from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI"]
+    rules = [
+        "from:RetroSummary",
+        "from:RunGreatClasses",
+        "#GPT",
+        "#llm",
+        "#AI",
+        "#AGI",
+        "foundation model",
+    ]
     twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
     # Github source.
-    github_source = GithubEvent(sink=mq, verbose=verbose)
+    github_source = GithubTrends(sink=mq, verbose=verbose)
 
     orchestrator = Orchestrator()
     orchestrator.set_gatherer(gatherer=gatherer)
