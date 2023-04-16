@@ -25,9 +25,9 @@ class Consumer(ABC):
         self.logger = Logger(logger_name=__name__, verbose=verbose)
         self.dedup = dedup
         self.kwargs = kwargs
-        self.in_memory_index = {}
+        self.in_memory_index: Dict[str, Dict[str, Any]] = {}
 
-    async def process(self, messages: List[Dict[str, Any]]):
+    async def process(self, messages: List[Dict[str, Any]]) -> None:
         """Process the message."""
         if self.dedup:
             messages = await self._dedup(messages)
@@ -41,6 +41,6 @@ class Consumer(ABC):
         return deduped_messages
 
     @abstractmethod
-    async def _process(self, messages: List[Dict[str, Any]]):
+    async def _process(self, messages: List[Dict[str, Any]]) -> None:
         """Process the message."""
         raise NotImplementedError

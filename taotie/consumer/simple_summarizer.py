@@ -22,7 +22,8 @@ class SimpleSummarizer(Consumer):
         **kwargs,
     ):
         Consumer.__init__(self, verbose=verbose, dedup=dedup)
-        self.buffer, self.buffer_size = [], 0
+        self.buffer: List[str] = []
+        self.buffer_size = 0
         self.max_buffer_size = kwargs.get("max_buffer_size", 800)
         self.summarize_instruction = summarize_instruction
         if not self.summarize_instruction:
@@ -34,7 +35,7 @@ class SimpleSummarizer(Consumer):
         self.max_tokens = kwargs.get("max_tokens", 800)
         self.logger.info("PrintConsumer initialized.")
 
-    async def _process(self, messages: List[Dict[str, Any]]):
+    async def _process(self, messages: List[Dict[str, Any]]) -> None:
         self.buffer.extend(map(lambda m: json.dumps(m), messages))
         if len("".join(self.buffer)) > self.max_buffer_size:
             concatenated_messages = "\n".join(self.buffer)
@@ -64,6 +65,6 @@ class SimpleSummarizer(Consumer):
             max_tokens=self.max_tokens,
             temperature=0.0,
         )
-        self.logger.output(
-            f"Summary: {response.choices[0].message.content}\n", color=Fore.BLUE
-        )
+        result = response.choices[0].message.content
+        self.logger.output(f"Summary: {result}\n", color=Fore.BLUE)
+        return result

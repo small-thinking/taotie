@@ -1,10 +1,11 @@
 import inspect
 import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
+import pytz
 import requests
-from colorama import Fore
+from colorama import Fore, ansi
 from dotenv import load_dotenv
 
 
@@ -15,7 +16,7 @@ def load_env(env_file_path: str = "") -> None:
         load_dotenv()
 
 
-def get_datetime(timestamp: float = None) -> str:
+def get_datetime(timestamp: Optional[float] = None) -> str:
     """Convert the timestamp to datetime string.
 
     Args:
@@ -24,9 +25,10 @@ def get_datetime(timestamp: float = None) -> str:
     Returns:
         str: The datetime string.
     """
+    timezone = pytz.timezone("Etc/GMT+8")
     if not timestamp:
         timestamp = datetime.now().timestamp()
-    return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.fromtimestamp(timestamp, timezone).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def fetch_url_content(url: str):
@@ -58,7 +60,7 @@ class Logger:
 
         self.logger.addHandler(self.console_handler)
 
-    def output(self, message: str, color: Fore = Fore.GREEN) -> None:
+    def output(self, message: str, color: str = ansi.Fore.GREEN) -> None:
         print(color + message + Fore.RESET)
 
     def debug(self, message: str) -> None:
