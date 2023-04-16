@@ -58,8 +58,6 @@ class SimpleSummarizer(Consumer):
                 {
                     "role": "system",
                     "content": f"{self.summarize_instruction}",
-                    # "content": f"You are an assistant that extracts and summarizes the meaningful information from the collected json data."
-                    # f"Please summarize in {self.language}",
                 },
                 {"role": "user", "content": prompt},
             ],
