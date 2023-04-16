@@ -1,4 +1,4 @@
-"""A web service that accept the http request to collect the data.
+"""A web service that accepts HTTP requests to collect data.
 """
 
 import requests
@@ -11,7 +11,7 @@ from taotie.utils import get_datetime
 
 
 class HttpService(BaseSource):
-    """A web service that accept the http request to collect the data."""
+    """A web service that accepts HTTP requests to collect data."""
 
     def __init__(self, sink: MessageQueue, verbose=False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
@@ -66,3 +66,4 @@ if __name__ == "__main__":
     message_queue = SimpleMessageQueue()
     http_service = HttpService(sink=message_queue, verbose=True)
     http_service.start()
+

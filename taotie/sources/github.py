@@ -76,3 +76,4 @@ class GithubTrends(BaseSource):
                 self._send_data(github_event)
                 self.logger.debug(f"{idx}: {github_event.encode()}")
             time.sleep(60)
+

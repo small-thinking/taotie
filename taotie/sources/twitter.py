@@ -2,19 +2,18 @@ import os
 from datetime import datetime
 from typing import List
 
-import requests
-from tweepy import StreamingClient, StreamRule
+import tweepy
 
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource, Information
 from taotie.utils import get_datetime
 
 
-class TwitterSubscriber(BaseSource, StreamingClient):
+class TwitterSubscriber(BaseSource):
     """Listen to Twitter stream according to the rules.
 
     Args:
-        rules (List[StreamRule]): List of rules to filter the stream.
+        rules (List[str]): List of rules to filter the stream.
         Please check https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/integrate/build-a-rule#availability
         on how to define the rules.
     """
@@ -27,8 +26,13 @@ class TwitterSubscriber(BaseSource, StreamingClient):
         **kwargs,
     ):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
-        self.bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
-        StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
+        auth = tweepy.OAuth1UserHandler(
+            os.getenv("TWITTER_API_KEY"),
+            os.getenv("TWITTER_API_SECRET_KEY"),
+            os.getenv("TWITTER_ACCESS_TOKEN"),
+            os.getenv("TWITTER_ACCESS_TOKEN_SECRET"),
+        )
+        self.stream = tweepy.Stream(auth=auth, listener=self)
         self._cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
         self.batch = []
@@ -37,17 +41,15 @@ class TwitterSubscriber(BaseSource, StreamingClient):
 
     def add_filter_rules(self, rules: List[str]):
         """Add rules to filter the stream."""
-        rules = [StreamRule(value=rule) for rule in rules]
-        response = self.add_rules(rules)
-        self.logger.info(f"Add rules: {response}")
+        self.stream.filter(track=rules)
 
-    def on_tweet(self, tweet):
-        self.logger.debug(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
+    def on_status(self, status):
+        self.logger.debug(f"{datetime.now()} (Id: {status.id}):\n{status}")
         tweet = Information(
             type="tweet",
-            datetime_str=tweet.created_at or get_datetime(),
-            id=tweet.id,
-            text=tweet.text,
+            datetime_str=status.created_at or get_datetime(),
+            id=status.id,
+            text=status.text,
         )
         self.batch.append(tweet)
         if len(self.batch) >= self.batch_send_size:
@@ -78,4 +80,5 @@ class TwitterSubscriber(BaseSource, StreamingClient):
                 self.logger.info(f"Deleted rules: {response}")
 
     def run(self):
-        self.filter(threaded=True)
+        self.stream.filter(threaded=True)
+
