@@ -1,7 +1,8 @@
-# Setup the env.
-conda create -n taotie python=3.10
-conda activate taotie
+python3 -m venv taotie
+source taotie/bin/activate  # On Windows, use "taotie\Scripts\activate"
+
 # Install the packages.
-pip install poetry
+pip3 install --upgrade pip
+pip3 install poetry
 poetry shell
 poetry install

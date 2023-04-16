@@ -97,7 +97,9 @@ def create_info_printer():
         "#AGI",
         "foundation model",
     ]
-    twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
+    # it will be a bit tricky to test twitter api, as it's no longer free.
+    # https://twitter.com/TwitterDev/status/1621026986784337922 
+    #twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
     # Github source.
     github_source = GithubTrends(sink=mq, verbose=verbose)
     # Http service source.
