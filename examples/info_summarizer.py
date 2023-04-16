@@ -105,8 +105,8 @@ def create_info_printer():
 
     orchestrator = Orchestrator()
     orchestrator.set_gatherer(gatherer=gatherer)
-    orchestrator.add_source(twitter_source)
-    orchestrator.add_source(github_source)
+    # orchestrator.add_source(twitter_source)
+    # orchestrator.add_source(github_source)
     orchestrator.add_source(http_service_source)
     orchestrator.start()
 
