@@ -14,8 +14,18 @@ def create_info_printer():
     batch_size = 1
     fetch_interval = 10
     mq = SimpleMessageQueue()
+    instruction = """
+    Please summarize the following collected json data in an informative way in Chinese:
+    If the json is about a tweets, please refer the id. If it does not contain meaningful information, please ignore it.
+    If the json is about a github repos, please summarize them ONE BY ONE and include the repo names and the repo links.
+    If the json is a web page, please extract the main content and summarize.
+    """
     consumer = SimpleSummarizer(
-        buffer_size=1000, verbose=verbose, dedup=True, max_tokens=1800
+        buffer_size=1000,
+        summarize_instruction=instruction,
+        verbose=verbose,
+        dedup=True,
+        max_tokens=1800,
     )
     gatherer = Gatherer(
         message_queue=mq,
@@ -35,8 +45,8 @@ def create_info_printer():
 
     orchestrator = Orchestrator()
     orchestrator.set_gatherer(gatherer=gatherer)
-    # orchestrator.add_source(twitter_source)
-    # orchestrator.add_source(github_source)
+    orchestrator.add_source(twitter_source)
+    orchestrator.add_source(github_source)
     orchestrator.add_source(http_service_source)
     orchestrator.start()
 
