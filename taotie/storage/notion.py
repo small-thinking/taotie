@@ -1,6 +1,5 @@
 """Store the data in Notion.
 """
-import asyncio
 import datetime
 import os
 from typing import Any, Dict, List, Tuple
@@ -33,7 +32,6 @@ class NotionStorage(Storage):
         if not self.database_id:
             self.database_id = await self._get_or_create_database()
         for raw_item, processed_item in data:
-            #     # page_id = await self._create_page(raw_item, processed_item=processed_item)
             await self._add_to_database(self.database_id, raw_item, processed_item)
         self.logger.info("Notion storage saved.")
 
@@ -51,10 +49,10 @@ class NotionStorage(Storage):
             # Create a new database.
             parent = {"page_id": self.root_page_id}
             properties = {
-                "id": {"title": {}},
-                "type": {"select": {}},
-                "datetime": {"date": {}},
-                "summary": {"rich_text": {}},
+                "Title": {"title": {}},
+                "Type": {"select": {}},
+                "Created Time": {"date": {}},
+                "Summary": {"rich_text": {}},
             }
             response = await self.notion.databases.create(
                 parent=parent,
@@ -64,60 +62,20 @@ class NotionStorage(Storage):
             self.logger.info("Database created.")
             return response["id"]
 
-    async def _create_page(
-        self, item: Dict[str, Any], processed_item: Dict[str, Any]
-    ) -> str:
-        self.logger.info("Creating a new page...")
-        page = await self.notion.pages.create(
-            parent={"page_id": self.root_page_id},
-            properties={
-                "title": [{"type": "text", "text": {"content": item["id"]}}],
-                # "type": {
-                #     "rich_text": [{"type": "text", "text": {"content": item["type"]}}]
-                # },
-                # "datetime": {"date": {"start": item["datetime"]}},
-                # "description": {
-                #     "rich_text": [
-                #         {
-                #             "type": "text",
-                #             "text": {"content": processed_item.get("summary", "N/A")},
-                #         }
-                #     ]
-                # },
-            },
-            # children=[
-            #     {
-            #         "object": "block",
-            #         "type": "paragraph",
-            #         "paragraph": {
-            #             "rich_text": [
-            #                 {
-            #                     "type": "text",
-            #                     "text": {"content": item.get("content", "N/A")},
-            #                 }
-            #             ]
-            #         },
-            #     }
-            # ],
-        )
-        self.logger.info("Page created.")
-        return page["id"]
-
     async def _add_to_database(
         self, database_id: str, item: Dict[str, Any], processed_item: Dict[str, Any]
     ) -> None:
         self.logger.info("Adding page to database...")
         new_page = {
-            # "created_time": {"date": {"start": item["datetime"]}},
-            "title": [
+            "Title": [
                 {
                     "type": "text",
                     "text": {"content": item["id"]},
                 }
             ],
-            "datetime": {"start": item["datetime"]},
-            "type": {"name": item["type"]},
-            "summary": [
+            "Created Time": {"start": item["datetime"]},
+            "Type": {"name": item["type"]},
+            "Summary": [
                 {
                     "type": "text",
                     "text": {"content": processed_item.get("summary", "N/A")},
