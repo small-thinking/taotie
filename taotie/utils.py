@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from typing import Any, Optional
 
+import pytz
 import requests
 from colorama import Fore
 from dotenv import load_dotenv
@@ -24,9 +25,10 @@ def get_datetime(timestamp: Optional[float] = None) -> str:
     Returns:
         str: The datetime string.
     """
+    timezone = pytz.timezone("Etc/GMT+8")
     if not timestamp:
         timestamp = datetime.now().timestamp()
-    return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.fromtimestamp(timestamp, timezone).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def fetch_url_content(url: str):
