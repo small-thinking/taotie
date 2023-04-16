@@ -34,7 +34,8 @@ class HttpService(BaseSource):
         self.logger.info(f"HttpService received {url}.")
         try:
             response = requests.get(url, allow_redirects=True)
-            content_type, content = response.headers.get("Content-Type"), response.text
+            content_type = response.headers.get("Content-Type", "")
+            content = response.text
             doc = None
             if "text/html" in content_type:
                 elements = partition_html(text=content)

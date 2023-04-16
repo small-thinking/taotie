@@ -1,7 +1,7 @@
 import inspect
 import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from colorama import Fore
@@ -15,7 +15,7 @@ def load_env(env_file_path: str = "") -> None:
         load_dotenv()
 
 
-def get_datetime(timestamp: float = None) -> str:
+def get_datetime(timestamp: Optional[float] = None) -> str:
     """Convert the timestamp to datetime string.
 
     Args:

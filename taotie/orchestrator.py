@@ -2,6 +2,7 @@
 """
 import os
 from threading import Thread
+from typing import Dict
 
 from taotie.gatherer import Gatherer
 from taotie.sources.base import BaseSource
@@ -13,7 +14,7 @@ class Orchestrator(Thread):
 
     def __init__(self, verbose: bool = False):
         super().__init__()
-        self.sources = {}
+        self.sources: Dict[str, BaseSource] = {}
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
 
     def add_source(self, source: BaseSource):

@@ -15,10 +15,11 @@ class MessageQueue(ABC):
     def put(self, message_json: str) -> bool:
         # Validate the message.
         try:
-            json_obj = json.loads(message_json)
-        except json.JSONDecodeError as e:
+            json.loads(message_json)
+        except json.JSONDecodeError:
             return False
         self._put(message_json)
+        return True
 
     @abstractmethod
     def _put(self, message_json: str):
@@ -43,7 +44,7 @@ class SimpleMessageQueue(MessageQueue):
 
     def __init__(self, verbose: bool = False):
         super().__init__(verbose=verbose)
-        self.queue = Queue()
+        self.queue: Queue = Queue()
 
     def _put(self, message_json: str):
         self.queue.put(message_json)

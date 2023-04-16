@@ -2,7 +2,7 @@
 """
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from taotie.utils import Logger, load_dotenv
 
@@ -14,8 +14,6 @@ class Storage(ABC):
         self.logger = Logger(os.path.basename(__file__), verbose=verbose)
 
     @abstractmethod
-    async def save(
-        self, raw_data: List[Dict[str, Any]], processed_data: List[Dict[str, Any]]
-    ):
+    async def save(self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
         """Save the data to the storage."""
         raise NotImplementedError
