@@ -12,6 +12,8 @@ python-dotenv = "^1.0.0"
 colorama = "^0.4.6"
 bs4 = "^0.0.1"
 openai = "^0.27.4"
+flask = "^2.2.3"
+unstructured = "^0.5.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.0"

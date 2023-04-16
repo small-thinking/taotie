@@ -12,6 +12,7 @@ from taotie.gatherer import Gatherer
 from taotie.message_queue import SimpleMessageQueue
 from taotie.orchestrator import Orchestrator
 from taotie.sources.github import GithubTrends
+from taotie.sources.http_service import HttpService
 from taotie.sources.twitter import TwitterSubscriber
 
 try:
@@ -41,6 +42,7 @@ class SummaryConsumer(Consumer):
 
     async def gpt_summary(self, input: str) -> str:
         """A tiny example use case of using LLM to process the gathered information."""
+        input = input[: self.max_buffer_size]
         prompt = f"""
         Please summarize the following collected json data in an informative way in {self.language}:
         If the json is about a tweets, please refer the id. If it does not contain meaningful information, please ignore it.
@@ -74,7 +76,9 @@ def create_info_printer():
     batch_size = 1
     fetch_interval = 10
     mq = SimpleMessageQueue()
-    consumer = SummaryConsumer(buffer_size=1000, verbose=verbose, dedup=True)
+    consumer = SummaryConsumer(
+        buffer_size=1000, verbose=verbose, dedup=True, max_tokens=1800
+    )
     gatherer = Gatherer(
         message_queue=mq,
         consumer=consumer,
@@ -96,11 +100,14 @@ def create_info_printer():
     twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
     # Github source.
     github_source = GithubTrends(sink=mq, verbose=verbose)
+    # Http service source.
+    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
 
     orchestrator = Orchestrator()
     orchestrator.set_gatherer(gatherer=gatherer)
     orchestrator.add_source(twitter_source)
     orchestrator.add_source(github_source)
+    orchestrator.add_source(http_service_source)
     orchestrator.start()
 
 
