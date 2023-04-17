@@ -3,14 +3,13 @@
 import asyncio
 import json
 from queue import Queue
-from threading import Thread
 from typing import Any, Dict, List
 
 from taotie.consumer.base import Consumer
 from taotie.utils import Logger
 
 
-class Gatherer(Thread):
+class Gatherer:
     """Gather data from different sources and use the consumer to process the received messages."""
 
     def __init__(
@@ -30,7 +29,6 @@ class Gatherer(Thread):
             fetch_interval (int, optional): The interval to fetch the messages. Defaults to 5.
             verbose (bool, optional): Whether to print the log. Defaults to False.
         """
-        Thread.__init__(self)
         self.logger = Logger(logger_name=__name__, verbose=verbose)
         self.message_queue = message_queue
         self.batch_size = batch_size
@@ -39,12 +37,7 @@ class Gatherer(Thread):
         self.fetch_interval = fetch_interval
         self.logger.info("Gatherer initialized.")
 
-    def run(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.get_event_loop().run_until_complete(self._execute())
-
-    async def _execute(self):
+    async def start(self):
         while True:
             while self.message_queue.empty():
                 self.logger.info(
@@ -55,7 +48,7 @@ class Gatherer(Thread):
                 messages = self.message_queue.get(batch_size=self.batch_size)
                 messages = await self._filter(messages)
                 self.logger.info(f"Gathered: {len(messages)} {messages}")
-                asyncio.create_task(self.comsumer.process(messages))
+                await self.consumer.process(messages)
 
     async def _filter(self, messages: List[str]) -> List[Dict[str, Any]]:
         """Filter the messages."""

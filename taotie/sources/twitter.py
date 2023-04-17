@@ -54,7 +54,7 @@ class TwitterSubscriber(BaseSource, StreamingClient):
             map(lambda tweet: self._send_data(tweet), self.batch)
             self.batch.clear()
 
-    def _cleanup(self):
+    async def _cleanup(self):
         # Fetch all rules.
         headers = {
             "Authorization": f"Bearer {self.bearer_token}",
@@ -77,5 +77,5 @@ class TwitterSubscriber(BaseSource, StreamingClient):
                 response = self.delete_rules(rule_ids)
                 self.logger.info(f"Deleted rules: {response}")
 
-    def run(self):
+    async def run(self):
         self.filter(threaded=True)

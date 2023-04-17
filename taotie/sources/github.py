@@ -23,10 +23,10 @@ class GithubTrends(BaseSource):
         self.logger.info(f"Github event initialized.")
         self.readme_truncate_size = kwargs.get("readme_truncate_size", 2000)
 
-    def _cleanup(self):
+    async def _cleanup(self):
         pass
 
-    def run(self):
+    async def run(self):
         while True:
             response = requests.get(self.url)
             soup = BeautifulSoup(response.text, "html.parser")
@@ -73,6 +73,6 @@ class GithubTrends(BaseSource):
                     repo_star=repo_star,
                     repo_fork=repo_fork,
                 )
-                self._send_data(github_event)
+                await self._send_data(github_event)
                 self.logger.debug(f"{idx}: {github_event.encode()}")
             time.sleep(60)

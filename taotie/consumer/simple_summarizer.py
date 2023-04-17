@@ -3,12 +3,13 @@
 import asyncio
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import openai
 from colorama import Fore
 
 from taotie.consumer.base import Consumer
+from taotie.storage.base import Storage
 
 
 class SimpleSummarizer(Consumer):
@@ -19,9 +20,10 @@ class SimpleSummarizer(Consumer):
         summarize_instruction: str,
         verbose: bool = False,
         dedup: bool = False,
+        storage: Optional[Storage] = None,
         **kwargs,
     ):
-        Consumer.__init__(self, verbose=verbose, dedup=dedup)
+        Consumer.__init__(self, verbose=verbose, dedup=dedup, storage=storage, **kwargs)
         self.buffer: List[str] = []
         self.buffer_size = 0
         self.max_buffer_size = kwargs.get("max_buffer_size", 800)
@@ -40,7 +42,15 @@ class SimpleSummarizer(Consumer):
         if len("".join(self.buffer)) > self.max_buffer_size:
             concatenated_messages = "\n".join(self.buffer)
             self.logger.info(f"Raw information: {concatenated_messages}\n")
-            asyncio.create_task(self.gpt_summary(concatenated_messages))
+            summary = await asyncio.create_task(self.gpt_summary(concatenated_messages))
+            self.logger.output(f"Summary: {summary}\n", color=Fore.BLUE)
+            # Save to storage.
+            if self.storage:
+                processed_data = {"summary": summary}
+                list_of_tuples = [(raw, processed_data) for raw in messages]
+                await self.storage.save(list_of_tuples)
+                self.logger.info(f"Saved to storage.")
+
             self.buffer.clear()
 
     async def gpt_summary(self, input: str) -> str:
@@ -66,5 +76,4 @@ class SimpleSummarizer(Consumer):
             temperature=0.0,
         )
         result = response.choices[0].message.content
-        self.logger.output(f"Summary: {result}\n", color=Fore.BLUE)
         return result

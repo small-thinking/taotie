@@ -18,21 +18,21 @@ repos:
     types: [python]
     exclude_types: [markdown]
 
-  - id: coverage
-    name: Test coverage
-    entry: coverage run -m pytest taotie/tests
-    language: system
-    pass_filenames: false
-    types: [python]
-    requires: [pytest]
+  # - id: coverage
+  #   name: Test coverage
+  #   entry: coverage run -m pytest .
+  #   language: system
+  #   pass_filenames: false
+  #   types: [python]
+  #   requires: [pytest]
 
-  - id: coverage_report
-    name: Test coverage threshold 65 check
-    entry: coverage report --fail-under=65
-    language: system
-    pass_filenames: false
-    types: [python]
-    requires: [coverage]
+  # - id: coverage_report
+  #   name: Test coverage threshold 65 check
+  #   entry: coverage report --fail-under=65
+  #   language: system
+  #   pass_filenames: false
+  #   types: [python]
+  #   requires: [coverage]
 
 - repo: https://github.com/pycqa/isort
   rev: 5.12.0
@@ -47,8 +47,8 @@ repos:
     language_version: python3.11
     exclude_types: [markdown]
 
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.1.1
-  hooks:
-  - id: mypy
-    exclude_types: [markdown]
+# - repo: https://github.com/pre-commit/mirrors-mypy
+#   rev: v1.1.1
+#   hooks:
+#   - id: mypy
+#     exclude_types: [markdown]

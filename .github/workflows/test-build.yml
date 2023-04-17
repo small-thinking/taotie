@@ -40,7 +40,7 @@ jobs:
           pip install pytest
       - name: Run tests
         run: |
-          pytest taotie/tests
+          pytest .
       - name: Install lint dependencies
         run: |
           python -m pip install --upgrade pip
