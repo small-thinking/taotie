@@ -58,7 +58,7 @@ class HttpService(BaseSource):
                         return "unknown"
                     if doc:
                         self.logger.output(doc.encode())
-                        # await self._send_data(doc)
+                        await self._send_data(doc)
                     return "ok"
         except Exception as e:
             self.logger.error(f"Error: {e}")

@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from typing import List
 
-import requests
+import requests  # type: ignore
 from tweepy import StreamingClient, StreamRule  # type: ignore
 
 from taotie.message_queue import MessageQueue

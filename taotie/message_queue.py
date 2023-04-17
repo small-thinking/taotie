@@ -55,7 +55,6 @@ class SimpleMessageQueue(MessageQueue):
         while self.queue.qsize() > 0 and fetch_count < batch_size:
             fetch_count += 1
             messages.append(await self.queue.get())
-            self.queue.task_done()
         return messages
 
     async def empty(self) -> bool:

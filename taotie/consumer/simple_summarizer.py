@@ -40,7 +40,7 @@ class SimpleSummarizer(Consumer):
         if len("".join(self.buffer)) > self.max_buffer_size:
             concatenated_messages = "\n".join(self.buffer)
             self.logger.info(f"Raw information: {concatenated_messages}\n")
-            asyncio.create_task(self.gpt_summary(concatenated_messages))
+            await asyncio.create_task(self.gpt_summary(concatenated_messages))
             self.buffer.clear()
 
     async def gpt_summary(self, input: str) -> str:

@@ -1,6 +1,6 @@
 import time
 
-import requests
+import requests  # type: ignore
 from bs4 import BeautifulSoup
 
 from taotie.message_queue import MessageQueue
