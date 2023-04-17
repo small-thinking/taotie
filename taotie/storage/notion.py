@@ -90,7 +90,7 @@ class NotionStorage(Storage):
                     "rich_text": [
                         {
                             "type": "text",
-                            "text": {"content": item.get("content", "N/A")},
+                            "text": {"content": item.get("content", "N/A")[:2000]},
                         }
                     ]
                 },

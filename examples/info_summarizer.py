@@ -1,6 +1,7 @@
 """The main entry to collect the information from all the sources.
 """
 import asyncio
+import os
 
 from taotie.consumer.simple_summarizer import SimpleSummarizer
 from taotie.gatherer import Gatherer
@@ -9,9 +10,12 @@ from taotie.orchestrator import Orchestrator
 from taotie.sources.github import GithubTrends
 from taotie.sources.http_service import HttpService
 from taotie.sources.twitter import TwitterSubscriber
+from taotie.storage.notion import NotionStorage
+from taotie.utils import load_env
 
 
 async def create_info_printer():
+    load_env()  # This has to be called as early as possible.
     verbose = True
     batch_size = 1
     fetch_interval = 10
@@ -22,11 +26,15 @@ async def create_info_printer():
     If the json is about a github repos, please summarize them ONE BY ONE and include the repo names and the repo links.
     If the json is a web page, please extract the main content and summarize.
     """
+    storage = NotionStorage(
+        root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
+    )
     consumer = SimpleSummarizer(
         buffer_size=1000,
         summarize_instruction=instruction,
         verbose=verbose,
         dedup=True,
+        storage=storage,
         max_tokens=1800,
     )
     gatherer = Gatherer(
