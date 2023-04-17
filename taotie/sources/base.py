@@ -2,7 +2,6 @@ import atexit
 import json
 import os
 from abc import ABC, abstractmethod
-from threading import Thread
 from typing import Any, Dict
 
 from taotie.message_queue import MessageQueue
@@ -32,7 +31,7 @@ class Information:
         return json.dumps(self.data, ensure_ascii=False)
 
 
-class BaseSource(ABC, Thread):
+class BaseSource(ABC):
     """Base class for all sources.
 
     This class is used to provide a common interface for all sources. It
@@ -41,11 +40,10 @@ class BaseSource(ABC, Thread):
     """
 
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
-        Thread.__init__(self)
         load_dotenv()
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
-        if not sink:
-            raise ValueError("The sink cannot be None.")
+        # if not sink:
+        #     raise ValueError("The sink cannot be None.")
         self.sink = sink
         atexit.register(self._cleanup)
 
@@ -53,10 +51,10 @@ class BaseSource(ABC, Thread):
         return self.__class__.__name__
 
     @abstractmethod
-    def _cleanup(self):
+    async def _cleanup(self):
         """Clean up the source."""
 
-    def _send_data(self, information: Information):
+    async def _send_data(self, information: Information):
         """This function is used to send the grabbed data to the message queue.
         It is supposed to be called within the callback function of the streaming
         function or in the forever loop.
@@ -64,9 +62,9 @@ class BaseSource(ABC, Thread):
         Args:
             information (Information): The data to send.
         """
-        self.sink.put(information.encode())
+        await self.sink.put(information.encode())
 
     @abstractmethod
-    def run(self):
+    async def run(self):
         """This method should wrap the streaming logic or a forever loop."""
         raise NotImplementedError

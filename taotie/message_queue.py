@@ -2,7 +2,7 @@
 """
 import json
 from abc import ABC, abstractmethod
-from queue import Queue
+from asyncio import Queue
 from typing import List
 
 from taotie.utils import Logger
@@ -12,29 +12,29 @@ class MessageQueue(ABC):
     def __init__(self, verbose: bool = False):
         self.logger = Logger(logger_name=__name__, verbose=verbose)
 
-    def put(self, message_json: str) -> bool:
+    async def put(self, message_json: str) -> bool:
         # Validate the message.
         try:
             json.loads(message_json)
         except json.JSONDecodeError:
             return False
-        self._put(message_json)
+        await self._put(message_json)
         return True
 
     @abstractmethod
-    def _put(self, message_json: str):
+    async def _put(self, message_json: str):
         """Put the message into the message queue."""
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, batch_size: int = 1) -> List[str]:
+    async def get(self, batch_size: int = 1) -> List[str]:
         """Extract the message from the message queue.
         It is possible to get multiple messages at a time.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def empty(self) -> bool:
+    async def empty(self) -> bool:
         """Check if the message queue is empty."""
         raise NotImplementedError
 
@@ -46,17 +46,17 @@ class SimpleMessageQueue(MessageQueue):
         super().__init__(verbose=verbose)
         self.queue: Queue = Queue()
 
-    def _put(self, message_json: str):
-        self.queue.put(message_json)
+    async def _put(self, message_json: str):
+        await self.queue.put(message_json)
 
-    def get(self, batch_size: int = 1) -> List[str]:
+    async def get(self, batch_size: int = 1) -> List[str]:
         fetch_count = 0
         messages = []
-        while not self.queue.empty() and fetch_count < batch_size:
+        while self.queue.qsize() > 0 and fetch_count < batch_size:
             fetch_count += 1
-            messages.append(self.queue.get())
+            messages.append(await self.queue.get())
             self.queue.task_done()
         return messages
 
-    def empty(self) -> bool:
-        return self.queue.empty()
+    async def empty(self) -> bool:
+        return self.queue.qsize() == 0

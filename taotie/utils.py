@@ -3,8 +3,8 @@ import logging
 from datetime import datetime
 from typing import Any, Optional
 
-import pytz
-import requests
+import pytz  # type: ignore
+import requests  # type: ignore
 from colorama import Fore, ansi
 from dotenv import load_dotenv
 
