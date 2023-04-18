@@ -2,15 +2,15 @@
 """
 import asyncio
 import json
-from queue import Queue
-from threading import Thread
+import signal
+from asyncio import Queue
 from typing import Any, Dict, List
 
 from taotie.consumer.base import Consumer
 from taotie.utils import Logger
 
 
-class Gatherer(Thread):
+class Gatherer:
     """Gather data from different sources and use the consumer to process the received messages."""
 
     def __init__(
@@ -30,32 +30,34 @@ class Gatherer(Thread):
             fetch_interval (int, optional): The interval to fetch the messages. Defaults to 5.
             verbose (bool, optional): Whether to print the log. Defaults to False.
         """
-        Thread.__init__(self)
         self.logger = Logger(logger_name=__name__, verbose=verbose)
         self.message_queue = message_queue
         self.batch_size = batch_size
         self.verbose = verbose
-        self.comsumer = consumer
+        self.consumer = consumer
         self.fetch_interval = fetch_interval
+        self._running = True
         self.logger.info("Gatherer initialized.")
 
-    def run(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.get_event_loop().run_until_complete(self._execute())
-
-    async def _execute(self):
-        while True:
-            while self.message_queue.empty():
-                self.logger.info(
-                    f"No messages, wait for {self.fetch_interval} seconds."
-                )
-                await asyncio.sleep(self.fetch_interval)
-            else:
-                messages = self.message_queue.get(batch_size=self.batch_size)
-                messages = await self._filter(messages)
-                self.logger.info(f"Gathered: {len(messages)} {messages}")
-                asyncio.create_task(self.comsumer.process(messages))
+    async def run(self):
+        try:
+            while True:
+                check_empty = await self.message_queue.empty()
+                while check_empty:
+                    self.logger.info(
+                        f"No messages, wait for {self.fetch_interval} seconds."
+                    )
+                    await asyncio.sleep(self.fetch_interval)
+                    check_empty = await self.message_queue.empty()
+                    if not self._running:  # Add this check
+                        raise asyncio.CancelledError
+                else:
+                    messages = await self.message_queue.get(batch_size=self.batch_size)
+                    messages: List[Dict[str, Any]] = await self._filter(messages)
+                    self.logger.info(f"Gathered: {len(messages)} {messages}")
+                    await self.consumer.process(messages)
+        except asyncio.CancelledError:
+            self.logger.info("Gatherer canceled.")
 
     async def _filter(self, messages: List[str]) -> List[Dict[str, Any]]:
         """Filter the messages."""

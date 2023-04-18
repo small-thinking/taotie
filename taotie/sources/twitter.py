@@ -1,16 +1,20 @@
+import asyncio
+import concurrent.futures
+import logging
 import os
+import traceback
 from datetime import datetime
 from typing import List
 
-import requests
+import requests  # type: ignore
 from tweepy import StreamingClient, StreamRule  # type: ignore
 
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource, Information
-from taotie.utils import get_datetime
+from taotie.utils import Logger, get_datetime, load_dotenv
 
 
-class TwitterSubscriber(BaseSource, StreamingClient):
+class TwitterSubscriber(BaseSource):
     """Listen to Twitter stream according to the rules.
 
     Args:
@@ -28,12 +32,46 @@ class TwitterSubscriber(BaseSource, StreamingClient):
     ):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
+        self.internal_queue: asyncio.Queue = asyncio.Queue()
+        # Tweepy is sync, so has to be wrapped in an executor.
+        self.sync_twitter_subscriber = SyncTwitterSubscriber(
+            rules=rules, internal_queue=self.internal_queue, verbose=verbose, **kwargs
+        )
+        self.batch: List[Information] = []
+        self.batch_send_size = kwargs.get("batch_send_size", 1)
+        self.logger.info(f"Twitter subscriber initialized.")
+
+    async def run(self):
+        loop = asyncio.get_event_loop()
+        # Create an executor to run the sync method in a separate thread
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, self.sync_twitter_subscriber.run)
+        while True:
+            tweet: Information = await self.internal_queue.get()
+            self.batch.append(tweet)
+            if len(self.batch) >= self.batch_send_size:
+                await asyncio.gather(*(self._send_data(t) for t in self.batch))
+                self.batch.clear()
+
+    async def _cleanup(self):
+        pass
+
+
+class SyncTwitterSubscriber(StreamingClient):
+    def __init__(
+        self,
+        rules: List[str],
+        internal_queue: asyncio.Queue,
+        verbose: bool = False,
+        **kwargs,
+    ):
+        load_dotenv()
+        self.bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
         StreamingClient.__init__(self, bearer_token=self.bearer_token, **kwargs)
+        self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
+        self.internal_queue = internal_queue
         self._cleanup()  # Do a pre-cleanup.
         self.add_filter_rules(rules)
-        self.batch: List[Information] = []
-        self.batch_send_size = kwargs.get("batch_send_size", 5)
-        self.logger.info(f"Twitter subscriber initialized.")
 
     def add_filter_rules(self, rules: List[str]):
         """Add rules to filter the stream."""
@@ -42,17 +80,14 @@ class TwitterSubscriber(BaseSource, StreamingClient):
         self.logger.info(f"Add rules: {response}")
 
     def on_tweet(self, tweet):
-        self.logger.debug(f"{datetime.now()} (Id: {tweet.id}):\n{tweet}")
-        tweet = Information(
+        tweet_info = Information(
             type="tweet",
             datetime_str=tweet.created_at or get_datetime(),
             id=tweet.id,
             text=tweet.text,
         )
-        self.batch.append(tweet)
-        if len(self.batch) >= self.batch_send_size:
-            map(lambda tweet: self._send_data(tweet), self.batch)
-            self.batch.clear()
+        # Put the tweet in the queue, no need to await since the queue is a thread-safe data structure.
+        self.internal_queue.put_nowait(tweet_info)
 
     def _cleanup(self):
         # Fetch all rules.

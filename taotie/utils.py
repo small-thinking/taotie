@@ -1,10 +1,12 @@
+import asyncio
 import inspect
 import logging
+import sys
 from datetime import datetime
 from typing import Any, Optional
 
-import pytz
-import requests
+import pytz  # type: ignore
+import requests  # type: ignore
 from colorama import Fore, ansi
 from dotenv import load_dotenv
 
@@ -44,6 +46,13 @@ def fetch_url_content(url: str):
 # Create a logger class that accept level setting.
 # The logger should be able to log to stdout and display the datetime, caller, and line of code.
 class Logger:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(
         self, logger_name: str, verbose: bool = True, level: Any = logging.INFO
     ):
@@ -53,11 +62,9 @@ class Logger:
         self.formatter = logging.Formatter(
             "%(asctime)s %(levelname)s %(name)s %(message)s (%(filename)s:%(lineno)d)"
         )
-
         self.console_handler = logging.StreamHandler()
         self.console_handler.setLevel(level=level)
         self.console_handler.setFormatter(self.formatter)
-
         self.logger.addHandler(self.console_handler)
 
     def output(self, message: str, color: str = ansi.Fore.GREEN) -> None:

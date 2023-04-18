@@ -2,8 +2,9 @@
 
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+from taotie.storage.base import Storage
 from taotie.utils import Logger
 
 
@@ -13,17 +14,27 @@ class Consumer(ABC):
     orchestrator such as a langchain application.
     """
 
-    def __init__(self, verbose: bool = False, dedup: bool = False, **kwargs):
+    def __init__(
+        self,
+        verbose: bool = False,
+        dedup: bool = False,
+        storage: Optional[Storage] = None,
+        **kwargs,
+    ):
         """Initialize the consumer.
 
         Args:
             verbose (bool, optional): Whether to print the log. Defaults to False.
             dedup (bool, optional): Whether to deduplicate the messages by id. Defaults to False.
+            storage (Optional[Storage], optional): The storage to store the messages. Defaults to None.
             **kwargs: Other arguments.
         """
         self.verbose = verbose
         self.logger = Logger(logger_name=__name__, verbose=verbose)
         self.dedup = dedup
+        self.storage = storage
+        if not self.storage:
+            self.logger.warning("The storage is not set.")
         self.kwargs = kwargs
         self.in_memory_index: Dict[str, Dict[str, Any]] = {}
 
