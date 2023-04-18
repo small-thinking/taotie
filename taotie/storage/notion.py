@@ -70,7 +70,7 @@ class NotionStorage(Storage):
             "Title": [
                 {
                     "type": "text",
-                    "text": {"content": item["id"]},
+                    "text": {"content": str(item["id"])},
                 }
             ],
             "Created Time": {"start": item["datetime"]},

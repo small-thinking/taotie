@@ -41,9 +41,9 @@ class BaseSource(ABC):
 
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         load_dotenv()
+        if not sink:
+            raise ValueError("The sink cannot be None.")
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
-        # if not sink:
-        #     raise ValueError("The sink cannot be None.")
         self.sink = sink
         atexit.register(self._cleanup)
 

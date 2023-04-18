@@ -1,5 +1,7 @@
+import asyncio
 import inspect
 import logging
+import sys
 from datetime import datetime
 from typing import Any, Optional
 
@@ -53,7 +55,6 @@ class Logger:
         self.formatter = logging.Formatter(
             "%(asctime)s %(levelname)s %(name)s %(message)s (%(filename)s:%(lineno)d)"
         )
-
         self.console_handler = logging.StreamHandler()
         self.console_handler.setLevel(level=level)
         self.console_handler.setFormatter(self.formatter)

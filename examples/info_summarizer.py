@@ -14,7 +14,7 @@ from taotie.storage.notion import NotionStorage
 from taotie.utils import load_env
 
 
-async def create_info_printer():
+def create_info_printer():
     load_env()  # This has to be called as early as possible.
     verbose = True
     batch_size = 1
@@ -46,20 +46,20 @@ async def create_info_printer():
     )
 
     # Twitter source.
-    # rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
-    # twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
-    # # Github source.
+    rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
+    twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
+    # Github source.
     # github_source = GithubTrends(sink=mq, verbose=verbose)
-    # Http service source.
-    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
+    # # Http service source.
+    # http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
 
-    orchestrator = Orchestrator()
+    orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
-    # orchestrator.add_source(twitter_source)
+    orchestrator.add_source(twitter_source)
     # orchestrator.add_source(github_source)
-    orchestrator.add_source(http_service_source)
-    await orchestrator.run()
+    # orchestrator.add_source(http_service_source)
+    asyncio.run(orchestrator.run())
 
 
 if __name__ == "__main__":
-    asyncio.run(create_info_printer())
+    create_info_printer()

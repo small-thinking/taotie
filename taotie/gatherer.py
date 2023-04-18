@@ -53,7 +53,7 @@ class Gatherer:
                         raise asyncio.CancelledError
                 else:
                     messages = await self.message_queue.get(batch_size=self.batch_size)
-                    messages = await self._filter(messages)
+                    messages: List[Dict[str, Any]] = await self._filter(messages)
                     self.logger.info(f"Gathered: {len(messages)} {messages}")
                     await self.consumer.process(messages)
         except asyncio.CancelledError:
