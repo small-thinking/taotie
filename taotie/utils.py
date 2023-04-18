@@ -55,10 +55,12 @@ class Logger:
         self.formatter = logging.Formatter(
             "%(asctime)s %(levelname)s %(name)s %(message)s (%(filename)s:%(lineno)d)"
         )
+        # Remove existing handlers
+        for handler in self.logger.handlers:
+            self.logger.removeHandler(handler)
         self.console_handler = logging.StreamHandler()
         self.console_handler.setLevel(level=level)
         self.console_handler.setFormatter(self.formatter)
-
         self.logger.addHandler(self.console_handler)
 
     def output(self, message: str, color: str = ansi.Fore.GREEN) -> None:
