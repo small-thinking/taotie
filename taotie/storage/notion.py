@@ -66,6 +66,13 @@ class NotionStorage(Storage):
         self, database_id: str, item: Dict[str, Any], processed_item: Dict[str, Any]
     ) -> None:
         self.logger.info("Adding page to database...")
+        # Determine the icon.
+        uri = item.get("uri", "")
+        icon_emoji = "📄"
+        if uri.startswith("https://twitter.com"):
+            icon_emoji = "🐦"
+        elif uri.startswith("https://github.com"):
+            icon_emoji = "💻"
         new_page = {
             "Title": [
                 {
@@ -73,6 +80,7 @@ class NotionStorage(Storage):
                     "text": {"content": str(item["id"])},
                 }
             ],
+            # "icon": {"type": "emoji", "emoji": icon_emoji},
             "Created Time": {"start": item["datetime"]},
             "Type": {"name": item["type"]},
             "Summary": [
@@ -125,8 +133,12 @@ class NotionStorage(Storage):
         # Display the raw information as content.
         uri = raw_info.get("uri", "")
         reference_type = "bookmark"
+
         if uri.startswith("https://twitter.com"):
             reference_type = "embed"
+            icon_emoji = "🐦"
+        elif uri.startswith("https://github.com"):
+            icon_emoji = "💻"
 
         page_contents = [
             {
@@ -165,7 +177,7 @@ class NotionStorage(Storage):
                     "rich_text": [
                         {
                             "type": "text",
-                            "text": {"content": raw_info.get("content", "N/A")[:2000]},
+                            "text": {"content": raw_info.get("content", "N/A")[:1900]},
                         }
                     ]
                 },
