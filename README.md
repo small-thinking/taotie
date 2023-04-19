@@ -2,13 +2,13 @@
 Let taotie be your helper to consume the information.
 
 <p align="center">
-    <img src="taotie.png" alt="drawing"/>
+    <img src="./images/taotie.png" alt="drawing"/>
 </p>
 
 
 
 <p align="center">
-    <img src="architecture.png" alt="drawing"/>
+    <img src="./images/architecture.png" alt="drawing"/>
     <br>The architecture of TaoTie
 </p>
 
@@ -27,11 +27,11 @@ The example output can be seen as follows:
 </p>
 
 <p align="center">
-    <img src="./examples/web-page.png" alt="drawing"/>
+    <img src="./images/web-page.png" alt="drawing"/>
     <br>Summarized Web-page (Medium post)
 </p>
 
 <p align="center">
-    <img src="./examples/github-repo.png" alt="drawing"/>
+    <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
 </p>
