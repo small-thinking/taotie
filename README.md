@@ -25,3 +25,13 @@ The example output can be seen as follows:
     <img src="./examples/info_summarizer.png" alt="drawing"/>
     <br>Output of the info summarizer example
 </p>
+
+<p align="center">
+    <img src="./examples/web-page.png" alt="drawing"/>
+    <br>Summarized Web-page (Medium post)
+</p>
+
+<p align="center">
+    <img src="./examples/github-repo.png" alt="drawing"/>
+    <br>Summarized Github-repo (Github Trends)
+</p>

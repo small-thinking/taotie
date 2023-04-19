@@ -80,7 +80,7 @@ class NotionStorage(Storage):
                     "text": {"content": str(item["id"])},
                 }
             ],
-            "icon": {"type": "emoji", "emoji": icon_emoji},
+            # "icon": {"type": "emoji", "emoji": icon_emoji},
             "Created Time": {"start": item["datetime"]},
             "Type": {"name": item["type"]},
             "Summary": [
