@@ -1,34 +1,10 @@
 import atexit
-import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict
 
+from taotie.entity import Information
 from taotie.message_queue import MessageQueue
 from taotie.utils import *
-
-
-class Information:
-    """This class is used to wrap the information to send to the message queue.
-    The only required fields are type, id and timestamp. The rest of the fields are optional.
-    """
-
-    def __init__(self, type: str, id: str, datetime_str: str, **kwargs):
-        self.data: Dict[str, Any] = {
-            "type": type,
-            "id": id,
-            "datetime": datetime_str,
-            **kwargs,
-        }
-
-    def __repr__(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def encode(self):
-        return json.dumps(self.data, ensure_ascii=False)
 
 
 class BaseSource(ABC):

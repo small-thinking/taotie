@@ -30,9 +30,8 @@ class SimpleSummarizer(Consumer):
         self.summarize_instruction = summarize_instruction
         if not self.summarize_instruction:
             self.summarize_instruction = """
-            Please summarize the following collected json data in an informative way in English:
-            If the json is about a tweets, please refer the id. If it does not contain meaningful information, please ignore it.
-            If the json is about a github repos, please include the repo names and the repo links in the summary.
+            Please summarize the following collected json data in an informative way in English.
+            NO NEED TO MENTION TYPE. Just directly summarize the content in a CONCISE and COMPREHENSIvE way.
             """
         self.max_tokens = kwargs.get("max_tokens", 800)
         self.logger.info("PrintConsumer initialized.")

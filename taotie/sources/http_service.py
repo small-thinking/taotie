@@ -8,8 +8,9 @@ from hypercorn.config import Config
 from quart import Quart, jsonify, request
 from unstructured.partition.html import partition_html  # type: ignore
 
+from taotie.entity import Information
 from taotie.message_queue import MessageQueue, SimpleMessageQueue
-from taotie.sources.base import BaseSource, Information
+from taotie.sources.base import BaseSource
 from taotie.utils import get_datetime
 
 
@@ -50,6 +51,7 @@ class HttpService(BaseSource):
                             type="html",
                             datetime_str=get_datetime(),
                             id=url,
+                            uri=url,
                             content=message[: self.truncate_size],
                         )
                     elif "application/pdf" in content_type:
