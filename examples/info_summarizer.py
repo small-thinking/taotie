@@ -49,13 +49,13 @@ def create_info_printer():
     # Github source.
     github_source = GithubTrends(sink=mq, verbose=verbose)
     # # Http service source.
-    # http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
+    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
 
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
     orchestrator.add_source(twitter_source)
     orchestrator.add_source(github_source)
-    # orchestrator.add_source(http_service_source)
+    orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 
 
