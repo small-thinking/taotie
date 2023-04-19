@@ -21,10 +21,8 @@ def create_info_printer():
     fetch_interval = 10
     mq = SimpleMessageQueue()
     instruction = """
-    Please summarize the following collected json data in an informative way in Chinese:
-    If the json is about a tweets, please refer the id. If it does not contain meaningful information, please ignore it.
-    If the json is about a github repos, please summarize them ONE BY ONE and include the repo names and the repo links.
-    If the json is a web page, please extract the main content and summarize.
+    Please summarize the following collected json data in an informative way in Chinese.
+    NO NEED TO MENTION TYPE. Just directly summarize the content in a CONCISE and COMPREHENSIvE way.
     """
     storage = NotionStorage(
         root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
@@ -49,14 +47,14 @@ def create_info_printer():
     rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
     twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
     # Github source.
-    # github_source = GithubTrends(sink=mq, verbose=verbose)
+    github_source = GithubTrends(sink=mq, verbose=verbose)
     # # Http service source.
     # http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
 
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
     orchestrator.add_source(twitter_source)
-    # orchestrator.add_source(github_source)
+    orchestrator.add_source(github_source)
     # orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 

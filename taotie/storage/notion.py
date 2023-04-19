@@ -82,20 +82,7 @@ class NotionStorage(Storage):
                 }
             ],
         }
-        children = [
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [
-                        {
-                            "type": "text",
-                            "text": {"content": item.get("content", "N/A")[:2000]},
-                        }
-                    ]
-                },
-            }
-        ]
+        children = await self.create_page_blocks(item, processed_item)
 
         await self.notion.pages.create(
             parent={"type": "database_id", "database_id": database_id},
@@ -103,6 +90,88 @@ class NotionStorage(Storage):
             children=children,
         )
         self.logger.info("Page added to database.")
+
+    async def create_page_blocks(
+        self, raw_info: Dict[str, Any], processed_info: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Create the page blocks according to the information."""
+        # Display the processed information as summary.
+        summary = [
+            {
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": "Summary"},
+                        }
+                    ]
+                },
+            },
+            {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": processed_info.get("summary", "N/A")},
+                        }
+                    ]
+                },
+            },
+        ]
+        # Display the raw information as content.
+        uri = raw_info.get("uri", "")
+        reference_type = "bookmark"
+        if uri.startswith("https://twitter.com"):
+            reference_type = "embed"
+
+        page_contents = [
+            {
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": reference_type.capitalize()},
+                        }
+                    ]
+                },
+            },
+            {
+                "object": "block",
+                "type": reference_type,
+                reference_type: {"url": uri},
+            },
+            {
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": "Content"},
+                        }
+                    ]
+                },
+            },
+            {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": raw_info.get("content", "N/A")[:2000]},
+                        }
+                    ]
+                },
+            },
+        ]
+        return summary + page_contents
 
 
 async def run():

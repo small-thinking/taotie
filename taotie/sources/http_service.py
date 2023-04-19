@@ -8,8 +8,9 @@ from hypercorn.config import Config
 from quart import Quart, jsonify, request
 from unstructured.partition.html import partition_html  # type: ignore
 
+from taotie.entity import Information
 from taotie.message_queue import MessageQueue, SimpleMessageQueue
-from taotie.sources.base import BaseSource, Information
+from taotie.sources.base import BaseSource
 from taotie.utils import get_datetime
 
 

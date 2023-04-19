@@ -1,11 +1,11 @@
 import asyncio
-import time
 
 import aiohttp
 from bs4 import BeautifulSoup
 
+from taotie.entity import Information
 from taotie.message_queue import MessageQueue
-from taotie.sources.base import BaseSource, Information
+from taotie.sources.base import BaseSource
 from taotie.utils import get_datetime
 
 
@@ -21,7 +21,7 @@ class GithubTrends(BaseSource):
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.url = "https://github.com/trending?since=daily.json"
-        self.check_interval = kwargs.get("check_interval", 60)
+        self.check_interval = kwargs.get("check_interval", 600)
         self.readme_truncate_size = kwargs.get("readme_truncate_size", 2000)
         self.logger.info(f"Github event initialized.")
 
@@ -62,10 +62,13 @@ class GithubTrends(BaseSource):
                         async with session.get(
                             readme_url, verify_ssl=False
                         ) as readme_response:
-                            if readme_response.status_code == 200:
+                            if readme_response.status == 200:
                                 repo_readme = await readme_response.text()
                                 repo_readme = repo_readme[: self.readme_truncate_size]
-                    except Exception:
+                    except Exception as e:
+                        self.logger.warning(
+                            f"Failed to fetch from {readme_url}. Reason: {e}"
+                        )
                         repo_readme = ""
 
                     github_event = Information(
@@ -73,7 +76,7 @@ class GithubTrends(BaseSource):
                         datetime_str=get_datetime(),
                         id=repo_name,
                         uri=repo_url,
-                        conent=repo_readme,
+                        content=repo_readme,
                         repo_desc=repo_desc,
                         repo_lang=repo_lang,
                         repo_star=repo_star,

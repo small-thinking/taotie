@@ -1,16 +1,14 @@
 import asyncio
 import concurrent.futures
-import logging
 import os
-import traceback
-from datetime import datetime
 from typing import List
 
 import requests  # type: ignore
 from tweepy import StreamingClient, StreamRule  # type: ignore
 
+from taotie.entity import Information
 from taotie.message_queue import MessageQueue
-from taotie.sources.base import BaseSource, Information
+from taotie.sources.base import BaseSource
 from taotie.utils import Logger, get_datetime, load_dotenv
 
 
@@ -80,11 +78,12 @@ class SyncTwitterSubscriber(StreamingClient):
         self.logger.info(f"Add rules: {response}")
 
     def on_tweet(self, tweet):
+        author_id = tweet.author_id if tweet.author_id else "unknown"
         tweet_info = Information(
             type="tweet",
             datetime_str=tweet.created_at or get_datetime(),
             id=tweet.id,
-            uri=f"https://twitter.com/{tweet.author_id}/status/{tweet.id}",
+            uri=f"https://twitter.com/{author_id}/status/{tweet.id}",
             content=tweet.text,
         )
         # Put the tweet in the queue, no need to await since the queue is a thread-safe data structure.
