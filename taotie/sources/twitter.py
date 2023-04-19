@@ -84,7 +84,8 @@ class SyncTwitterSubscriber(StreamingClient):
             type="tweet",
             datetime_str=tweet.created_at or get_datetime(),
             id=tweet.id,
-            text=tweet.text,
+            uri=f"https://twitter.com/{tweet.author_id}/status/{tweet.id}",
+            content=tweet.text,
         )
         # Put the tweet in the queue, no need to await since the queue is a thread-safe data structure.
         self.internal_queue.put_nowait(tweet_info)

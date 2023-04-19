@@ -50,6 +50,7 @@ class HttpService(BaseSource):
                             type="html",
                             datetime_str=get_datetime(),
                             id=url,
+                            uri=url,
                             content=message[: self.truncate_size],
                         )
                     elif "application/pdf" in content_type:
