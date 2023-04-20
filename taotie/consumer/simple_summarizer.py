@@ -58,8 +58,8 @@ class SimpleSummarizer(Consumer):
         {input}
         """
         if not os.getenv("OPENAI_API_KEY"):
-            return "Please set OPENAI_API_KEY in .env."
-
+            raise ValueError("Please set OPENAI_API_KEY in .env.")
+        openai.api_key = os.getenv("OPENAI_API_KEY")
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
