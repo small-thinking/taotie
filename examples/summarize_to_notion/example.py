@@ -22,7 +22,7 @@ def create_notion_summarizer():
     fetch_interval = 10
     mq = SimpleMessageQueue()
     instruction = """
-    Please summarize the following collected json data in an informative way in Chinese.
+    Please summarize the following collected json data in an informative way in Chinese and THEN in English.
     NO NEED TO MENTION TYPE. Just directly summarize the content in a CONCISE and COMPREHENSIvE way.
     """
     storage = NotionStorage(
