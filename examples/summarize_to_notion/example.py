@@ -14,8 +14,9 @@ from taotie.storage.notion import NotionStorage
 from taotie.utils import load_env
 
 
-def create_info_printer():
+def create_notion_summarizer():
     load_env()  # This has to be called as early as possible.
+
     verbose = True
     batch_size = 1
     fetch_interval = 10
@@ -60,4 +61,4 @@ def create_info_printer():
 
 
 if __name__ == "__main__":
-    create_info_printer()
+    create_notion_summarizer()
