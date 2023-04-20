@@ -1,44 +1,39 @@
-# Tao Tie (饕餮)
-Let taotie be your helper to consume the information.
-
 <p align="center">
     <img src="./images/taotie.png" alt="drawing"/>
 </p>
 
+# Tao Tie (饕餮)
 
+Let taotie be your helper to consume the information. It consists of three main components:
+
+* **Sources**: These are the information sources that TaoTie can subscribe to. Currently, TaoTie supports Twitter, GitHub, and HTTP sources.
+* **Consumers**: These are the agents that TaoTie uses to summarize the information. TaoTie can be integrated with any Language Model (LLM) agent, and only a thin wrapper is needed to integrate the agent with TaoTie.
+* **Storage**: This is where TaoTie stores the summarized information. Currently, TaoTie supports Notion, but it can be configured to use other storage solutions as well.
+
+## Architecture
+
+Here's an overview of TaoTie's architecture:
 
 <p align="center">
     <img src="./images/architecture.png" alt="drawing"/>
     <br>The architecture of TaoTie
 </p>
 
-The main components of this tool includes the following:
-
-* **Sources**: we can also integrate with any sources. The current implementation includes the following sources:
-    - Twitter stream: This source subscribes from the twitter stream and then send the tweet to the LLM agent.
-    - Github Trend: This source subscribes from the github trend and then send the repo to the LLM agent.
-    - HTTP service: This source allows the user to send the url (e.g. the url of a blog post) to Taotie to consume.
-
-* **Consumers**: This tool can be integrated with any LLM agent to summarize the information. Only a thin wrapper is needed to integrate the LLM agent with TaoTie.
-
-* **Storage**: we can dump the data to any storage. The current implementation includes notion. We can also save the data to the vector database.
-
 ## Example
-### Subscribe from twitter stream, github trend, and http service, and then dump the summarization to notion.
-The example code can be seen in [examples/summarize_to_notion/example.py](examples/info_summarizer.py)
+Here's an example of how to use TaoTie to subscribe to Twitter, GitHub, and HTTP sources, summarize the information using an LLM agent, and store the summaries in Notion.
 
-This example shows how to subscribe from both passive and active sources, call the LLM agent, and then dump to the storage.
+The example code can be found in [examples/summarize_to_notion/example.py](examples/summarize_to_notion/example.py).
 
-### 1. Add your api tokens in .env.
+### 1. Set up your environment
 
-The template is available at .env.template.
+Create a .env file and add the necessary API tokens:
 
 ```bash
-OPENAI_API_KEY=aaa
-TWITTER_BEARER_TOKEN=bbb  # Please follow https://developer.twitter.com/en/portal.
+OPENAI_API_KEY=<your OpenAI API key>
+TWITTER_BEARER_TOKEN=<your Twitter bearer token>  # Please follow https://developer.twitter.com/en/portal.
 
-NOTION_TOKEN=ccc  # Please follow https://developers.notion.com/docs/create-a-notion-integration.
-NOTION_ROOT_PAGE_ID=ddd  # The id of the page where you want to dump the summary.
+NOTION_TOKEN=<your Notion API token>  # Please follow https://developers.notion.com/docs/create-a-notion-integration.
+NOTION_ROOT_PAGE_ID=<the ID of the page where you want to store the summaries>  # The id of the page where you want to dump the summary.
 ```
 
 ### 2. Build the example:
@@ -49,12 +44,11 @@ docker build -t summarize-to-notion -f examples/summarize_to_notion/Dockerfile .
 
 ### 3. Run the example:
 ```bash
-docker run -it summarize_to_notion
+docker run -it summarize-to-notion
 ```
 
-When the program runs, it will subscribe from twitter stream, github trend, and http service, and then dump the summarization to notion.
-It also setup a http server listening on port 6543 to receive the ad-hoc summarization request. 
-For example, if you see a blog post you want to summarize, you can send a request to the server as follows:
+When the program runs, it will subscribe to Twitter, GitHub, and HTTP sources, summarize the information using an LLM agent, and store the summaries in Notion. It will also set up an HTTP server listening on port 6543 to receive ad-hoc summarization requests. For example, you can use the following curl command to summarize a blog post:
+
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"url": "https://www.harmdevries.com/post/model-size-vs-compute-overhead"}' http://localhost:6543/api/v1/url
 ```
@@ -63,7 +57,7 @@ A more user friendly tool is not yet available. But you can use the [Postman](ht
 
 **Note: Please remember to stop the container after a while. Otherwise, your OPENAI bill will grow continously.**
 
-The example output can be seen as follows:
+### Output
 
 <p align="center">
     <img src="./examples/summarize_to_notion/example.png" alt="drawing"/>
