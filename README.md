@@ -12,6 +12,17 @@ Let taotie be your helper to consume the information.
     <br>The architecture of TaoTie
 </p>
 
+The main components of this tool includes the following:
+
+* **Sources**: we can also integrate with any sources. The current implementation includes the following sources:
+    - Twitter stream: This source subscribes from the twitter stream and then send the tweet to the LLM agent.
+    - Github Trend: This source subscribes from the github trend and then send the repo to the LLM agent.
+    - HTTP service: This source allows the user to send the url (e.g. the url of a blog post) to Taotie to consume.
+
+* **Consumers**: This tool can be integrated with any LLM agent to summarize the information. Only a thin wrapper is needed to integrate the LLM agent with TaoTie.
+
+* **Storage**: we can dump the data to any storage. The current implementation includes notion. We can also save the data to the vector database.
+
 ## Example
 ### Subscribe from twitter stream, github trend, and http service, and then dump the summarization to notion.
 The example code can be seen in [examples/summarize_to_notion/example.py](examples/info_summarizer.py)
