@@ -4,7 +4,7 @@
 
 # Tao Tie (饕餮)
 
-Let taotie be your helper to consume the information. It consists of three main components:
+Let Taotie be your helper to extract useful knowledge out of massive noisy information. It consists of three main components:
 
 * **Sources**: These are the information sources that TaoTie can subscribe to. Currently, TaoTie supports Twitter, GitHub, and HTTP sources.
 * **Consumers**: These are the agents that TaoTie uses to summarize the information. TaoTie can be integrated with any Language Model (LLM) agent, and only a thin wrapper is needed to integrate the agent with TaoTie.
