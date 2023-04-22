@@ -53,6 +53,7 @@ class NotionStorage(Storage):
                 "Type": {"select": {}},
                 "Created Time": {"date": {}},
                 "Summary": {"rich_text": {}},
+                "Topics": {"multi_select": {}},
             }
             response = await self.notion.databases.create(
                 parent=parent,
@@ -89,6 +90,7 @@ class NotionStorage(Storage):
                     "text": {"content": processed_item.get("summary", "N/A")},
                 }
             ],
+            "Topics": [],
         }
         children = await self.create_page_blocks(item, processed_item)
 
