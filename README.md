@@ -67,10 +67,21 @@ A more user friendly tool is not yet available. But you can use the [Postman](ht
 In your notion, you can see the contents added.
 
 <p align="center">
+    <img src="./images/adhoc-saving.gif" alt="drawing"/>
+    <br>Ad-hoc bookmarking
+</p>
+
+<p align="center">
     <img src="./images/web-page.png" alt="drawing"/>
     <br>Summarized Web-page (Medium post)
 </p>
 
+<p align="center">
+    <img src="./images/github-trending-short.gif" alt="drawing"/>
+    <br>Subscribed Github Trending
+</p>
+
+Click the entry can show the details.
 <p align="center">
     <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
