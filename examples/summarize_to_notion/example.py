@@ -34,7 +34,7 @@ def create_notion_summarizer():
         verbose=verbose,
         dedup=True,
         storage=storage,
-        max_tokens=1800,
+        max_tokens=2000,
     )
     gatherer = Gatherer(
         message_queue=mq,
