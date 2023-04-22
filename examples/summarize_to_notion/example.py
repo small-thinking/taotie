@@ -54,9 +54,9 @@ def create_notion_summarizer():
 
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
-    # orchestrator.add_source(twitter_source)
+    orchestrator.add_source(twitter_source)
     orchestrator.add_source(github_source)
-    # orchestrator.add_source(http_service_source)
+    orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 
 
