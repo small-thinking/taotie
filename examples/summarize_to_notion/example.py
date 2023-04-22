@@ -34,7 +34,7 @@ def create_notion_summarizer():
         verbose=verbose,
         dedup=True,
         storage=storage,
-        max_tokens=1800,
+        max_tokens=2800,
     )
     gatherer = Gatherer(
         message_queue=mq,
@@ -54,9 +54,9 @@ def create_notion_summarizer():
 
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
-    orchestrator.add_source(twitter_source)
+    # orchestrator.add_source(twitter_source)
     orchestrator.add_source(github_source)
-    orchestrator.add_source(http_service_source)
+    # orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 
 

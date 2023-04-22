@@ -34,6 +34,7 @@ class SimpleSummarizer(Consumer):
             NO NEED TO MENTION TYPE. Just directly summarize the content in a CONCISE and COMPREHENSIvE way.
             """
         self.max_tokens = kwargs.get("max_tokens", 800)
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo")
         self.logger.info("PrintConsumer initialized.")
 
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
@@ -61,7 +62,7 @@ class SimpleSummarizer(Consumer):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
         openai.api_key = os.getenv("OPENAI_API_KEY")
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=self.model_type,
             messages=[
                 {
                     "role": "system",

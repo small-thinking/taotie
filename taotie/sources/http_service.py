@@ -31,10 +31,11 @@ class HttpService(BaseSource):
         if "url" not in data:
             return jsonify({"error": "Missing URL parameter"}), 400
         url = data["url"]
-        result = await self._process(url)
+        content_type = data.get("content_type", "")
+        result = await self._process(url, content_type)
         return jsonify({"result": result})
 
-    async def _process(self, url: str) -> str:
+    async def _process(self, url: str, content_type: str = "html") -> str:
         self.logger.info(f"HttpService received {url}.")
         try:
             async with aiohttp.ClientSession() as session:
@@ -48,7 +49,7 @@ class HttpService(BaseSource):
                         elements = partition_html(text=content)
                         message = "\n".join([str(e) for e in elements])
                         doc = Information(
-                            type="html",
+                            type=content_type,
                             datetime_str=get_datetime(),
                             id=url,
                             uri=url,
