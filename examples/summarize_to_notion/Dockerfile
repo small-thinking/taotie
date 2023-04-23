@@ -33,6 +33,9 @@ WORKDIR /app
 COPY .env .
 COPY . .
 
+# Expose port 6543
+EXPOSE 6543
+
 # Upgrade pip and install Poetry and install project dependencies using Poetry
 RUN pip install --upgrade pip && pip install poetry==1.4.1 -U \
         && poetry export --without-hashes -f requirements.txt > requirements.txt \

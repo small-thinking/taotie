@@ -5,7 +5,7 @@ import os
 
 from taotie.consumer.simple_summarizer import SimpleSummarizer
 from taotie.gatherer import Gatherer
-from taotie.message_queue import SimpleMessageQueue
+from taotie.message_queue import RedisMessageQueue, SimpleMessageQueue
 from taotie.orchestrator import Orchestrator
 from taotie.sources.github import GithubTrends
 from taotie.sources.http_service import HttpService
@@ -21,6 +21,9 @@ def create_notion_summarizer():
     batch_size = 1
     fetch_interval = 10
     mq = SimpleMessageQueue()
+    redis_url = "taotie-redis"
+    channel_name = "taotie"
+    mq = RedisMessageQueue(redis_url=redis_url, channel_name=channel_name, verbose=True)
     instruction = """
     Please summarize the following collected json data in an informative way in Chinese and THEN in English.
     NO NEED TO MENTION TYPE. Just directly summarize the content in a CONCISE and COMPREHENSIvE way.
@@ -34,7 +37,7 @@ def create_notion_summarizer():
         verbose=verbose,
         dedup=True,
         storage=storage,
-        max_tokens=2000,
+        max_tokens=1000,
     )
     gatherer = Gatherer(
         message_queue=mq,
@@ -50,12 +53,12 @@ def create_notion_summarizer():
     # Github source.
     github_source = GithubTrends(sink=mq, verbose=verbose)
     # # Http service source.
-    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=3000)
+    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=2000)
 
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
-    orchestrator.add_source(twitter_source)
-    orchestrator.add_source(github_source)
+    # orchestrator.add_source(twitter_source)
+    # orchestrator.add_source(github_source)
     orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 
