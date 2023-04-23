@@ -36,16 +36,13 @@ NOTION_TOKEN=<your Notion API token>  # Please follow https://developers.notion.
 NOTION_ROOT_PAGE_ID=<the ID of the page where you want to store the summaries>  # The id of the page where you want to dump the summary.
 ```
 
-### 2. Build the example:
+### 2. Build and run the example:
+At the root of the repository, run the following command:
 ```bash
-# Build the docker image
-docker build -t summarize-to-notion -f examples/summarize_to_notion/Dockerfile .
+# Build the docker image via docker-compose
+docker-compose -f examples/summarize_to_notion/docker-compose.yml up
 ```
 
-### 3. Run the example:
-```bash
-docker run -it summarize-to-notion
-```
 
 When the program runs, it will subscribe to Twitter, GitHub, and HTTP sources, summarize the information using an LLM agent, and store the summaries in Notion. It will also set up an HTTP server listening on port 6543 to receive ad-hoc summarization requests. For example, you can use the following curl command to summarize a blog post:
 
