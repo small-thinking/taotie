@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    restart: always
+    container_name: taotie-redis
+
+  taotie:
+    build:
+      context: ${PWD}
+      dockerfile: ./examples/summarize_to_notion/Dockerfile
+    ports:
+      - "6543:6543"
+    depends_on:
+      - redis

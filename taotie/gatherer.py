@@ -41,6 +41,8 @@ class Gatherer:
 
     async def run(self):
         try:
+            self.logger.info(f"Connect to the message queue.")
+            await self.message_queue.connect()
             while True:
                 check_empty = await self.message_queue.empty()
                 while check_empty:
@@ -53,6 +55,12 @@ class Gatherer:
                         raise asyncio.CancelledError
                 else:
                     messages = await self.message_queue.get(batch_size=self.batch_size)
+                    if not len(messages):
+                        self.logger.info(
+                            f"No messages, wait for {self.fetch_interval} seconds."
+                        )
+                        await asyncio.sleep(self.fetch_interval)
+                        continue
                     messages: List[Dict[str, Any]] = await self._filter(messages)
                     self.logger.info(f"Gathered: {len(messages)} {messages}")
                     await self.consumer.process(messages)
