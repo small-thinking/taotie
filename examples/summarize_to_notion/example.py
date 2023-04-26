@@ -20,7 +20,6 @@ def create_notion_summarizer():
     verbose = True
     batch_size = 1
     fetch_interval = 10
-    mq = SimpleMessageQueue()
     redis_url = "taotie-redis"
     channel_name = "taotie"
     mq = RedisMessageQueue(redis_url=redis_url, channel_name=channel_name, verbose=True)
@@ -38,6 +37,7 @@ def create_notion_summarizer():
         dedup=True,
         storage=storage,
         max_tokens=1000,
+        max_buffer_size=1000,
     )
     gatherer = Gatherer(
         message_queue=mq,
@@ -53,12 +53,12 @@ def create_notion_summarizer():
     # Github source.
     github_source = GithubTrends(sink=mq, verbose=verbose)
     # # Http service source.
-    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=2000)
+    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=200000)
 
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
-    # orchestrator.add_source(twitter_source)
-    # orchestrator.add_source(github_source)
+    orchestrator.add_source(twitter_source)
+    orchestrator.add_source(github_source)
     orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 

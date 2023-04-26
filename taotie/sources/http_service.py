@@ -32,20 +32,19 @@ class HttpService(BaseSource):
             return jsonify({"error": "Missing URL parameter"}), 400
         url = data["url"]
         content_type = data.get("content_type", "")
-        result = await self._process(url, content_type)
+        result = await self._process(url=url, content_type=content_type)
         return jsonify({"result": result})
 
     async def _process(self, url: str, content_type: str = "html") -> str:
-        self.logger.info(f"HttpService received {url}.")
+        self.logger.info(f"HttpService received {url} and {content_type}.")
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     url, allow_redirects=True, verify_ssl=False
                 ) as response:
-                    content_type = response.headers.get("Content-Type", "")
                     content = await response.text()
                     doc = None
-                    if "text/html" in content_type:
+                    if content_type in ["html", "github-repo"]:
                         elements = partition_html(text=content)
                         message = "\n".join([str(e) for e in elements])
                         doc = Information(
@@ -58,9 +57,9 @@ class HttpService(BaseSource):
                     elif "application/pdf" in content_type:
                         message = "pdf"
                     else:
-                        return "unknown"
+                        return f"unknown content type {content_type}."
                     if doc:
-                        self.logger.output(doc.encode())
+                        # self.logger.output(doc.encode())
                         await self._send_data(doc)
                     return "ok"
         except Exception as e:
