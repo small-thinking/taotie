@@ -62,7 +62,7 @@ class Gatherer:
                         await asyncio.sleep(self.fetch_interval)
                         continue
                     messages: List[Dict[str, Any]] = await self._filter(messages)
-                    self.logger.info(f"Gathered: {len(messages)} {messages}")
+                    # self.logger.info(f"Gathered: {len(messages)} {messages}")
                     await self.consumer.process(messages)
         except asyncio.CancelledError:
             self.logger.info("Gatherer canceled.")

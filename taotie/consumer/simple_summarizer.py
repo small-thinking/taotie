@@ -40,8 +40,9 @@ class SimpleSummarizer(Consumer):
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
         self.buffer.extend(map(lambda m: json.dumps(m, ensure_ascii=False), messages))
         concatenated_messages = "\n".join(self.buffer)
-        self.logger.info(f"Raw information: {concatenated_messages}\n")
+        self.logger.info(f"Summarizer received information: {concatenated_messages}\n")
         summary = await asyncio.create_task(self.gpt_summary(concatenated_messages))
+        self.logger.info(f"Summary: {summary}\n")
         # Save to storage.
         if self.storage:
             processed_data = {"summary": summary}

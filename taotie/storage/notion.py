@@ -1,6 +1,7 @@
 """Store the data in Notion.
 """
 import datetime
+import json
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -69,7 +70,7 @@ class NotionStorage(Storage):
         self.logger.info("Adding page to database...")
         # Determine the icon.
         uri = item.get("uri", "")
-        icon_emoji = "📄"
+        icon_emoji = "🔖"
         if uri.startswith("https://twitter.com"):
             icon_emoji = "🐦"
         elif uri.startswith("https://github.com"):
@@ -81,7 +82,6 @@ class NotionStorage(Storage):
                     "text": {"content": str(item["id"])},
                 }
             ],
-            # "icon": {"type": "emoji", "emoji": icon_emoji},
             "Created Time": {"start": item["datetime"]},
             "Type": {"name": item["type"]},
             "Summary": [
@@ -97,6 +97,7 @@ class NotionStorage(Storage):
         await self.notion.pages.create(
             parent={"type": "database_id", "database_id": database_id},
             properties=new_page,
+            icon={"type": "emoji", "emoji": icon_emoji},
             children=children,
         )
         self.logger.info("Page added to database.")
@@ -138,9 +139,6 @@ class NotionStorage(Storage):
 
         if uri.startswith("https://twitter.com"):
             reference_type = "embed"
-            icon_emoji = "🐦"
-        elif uri.startswith("https://github.com"):
-            icon_emoji = "💻"
 
         page_contents = [
             {
@@ -172,19 +170,25 @@ class NotionStorage(Storage):
                     ]
                 },
             },
-            {
-                "object": "block",
-                "type": "paragraph",
-                "paragraph": {
-                    "rich_text": [
-                        {
-                            "type": "text",
-                            "text": {"content": raw_info.get("content", "N/A")[:1900]},
-                        }
-                    ]
-                },
-            },
         ]
+        # Partition and put the content into blocks.
+        content = raw_info.get("content", "")
+        content = content.split("\n")
+        for line in content:
+            page_contents.append(
+                {
+                    "object": "block",
+                    "type": "paragraph",
+                    "paragraph": {
+                        "rich_text": [
+                            {
+                                "type": "text",
+                                "text": {"content": line},
+                            }
+                        ]
+                    },
+                }
+            )
         return summary + page_contents
 
 
