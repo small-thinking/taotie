@@ -46,19 +46,18 @@ def create_notion_summarizer():
         fetch_interval=fetch_interval,
         verbose=verbose,
     )
-
-    # Twitter source.
-    rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
-    twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
-    # Github source.
-    github_source = GithubTrends(sink=mq, verbose=verbose)
-    # # Http service source.
-    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=200000)
-
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
-    orchestrator.add_source(twitter_source)
+
+    # Twitter source.
+    # rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
+    # twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
+    # orchestrator.add_source(twitter_source)
+    # Github source.
+    github_source = GithubTrends(sink=mq, verbose=verbose)
     orchestrator.add_source(github_source)
+    # # Http service source.
+    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=200000)
     orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 

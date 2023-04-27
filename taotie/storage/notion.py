@@ -97,7 +97,7 @@ class NotionStorage(Storage):
             parent={"type": "database_id", "database_id": database_id},
             properties=new_page,
             icon={"type": "emoji", "emoji": icon_emoji},
-            children=children,
+            children=children[:100],  # Can only add 100 blocks.
         )
         self.logger.info("Page added to database.")
 
@@ -173,7 +173,23 @@ class NotionStorage(Storage):
         # Partition and put the content into blocks.
         content = raw_info.get("content", "")
         content = content.split("\n")
-        for line in content:
+        for i, line in enumerate(content):
+            if i >= 99:
+                page_contents.append(
+                    {
+                        "object": "block",
+                        "type": "paragraph",
+                        "paragraph": {
+                            "rich_text": [
+                                {
+                                    "type": "text",
+                                    "text": {"content": "Content too long. Truncated."},
+                                }
+                            ]
+                        },
+                    }
+                )
+                break
             page_contents.append(
                 {
                     "object": "block",

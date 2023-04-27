@@ -1,8 +1,10 @@
 """A web service that accept the http request to collect the data.
 """
 import asyncio
+import traceback
 
 import aiohttp
+from bs4 import BeautifulSoup
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 from quart import Quart, jsonify, request
@@ -54,16 +56,20 @@ class HttpService(BaseSource):
                             uri=url,
                             content=message[: self.truncate_size],
                         )
+                    elif "arxiv.org/abs/" in url:
+                        # Parse the arxiv link. Extract the title, abstract, authors, and link to the paper.
+                        doc = await self._parse_arxiv(url, content)
                     elif "application/pdf" in content_type:
                         message = "pdf"
                     else:
                         return f"unknown content type {content_type}."
                     if doc:
-                        # self.logger.output(doc.encode())
+                        self.logger.output(doc.encode())
                         await self._send_data(doc)
                     return "ok"
         except Exception as e:
             self.logger.error(f"Error: {e}")
+            traceback.print_exc()
             return "error"
 
     async def run(self):
@@ -73,6 +79,44 @@ class HttpService(BaseSource):
 
     async def _cleanup(self):
         pass
+
+    async def _parse_arxiv(self, url: str, content: str) -> Information:
+        """Parse the arxiv link. Extract the title, abstract, authors, and link to the paper."""
+        soup = BeautifulSoup(content, "html.parser")
+
+        title = (
+            soup.find("h1", class_="title mathjax")
+            .text.strip()
+            .replace("Title:", "")
+            .strip()
+        )
+        abstract = (
+            soup.find("blockquote", class_="abstract mathjax")
+            .text.strip()
+            .replace("Abstract: ", "")
+        )
+        authors = ", ".join(
+            [
+                author.text.strip()
+                for author in soup.find_all("div", class_="authors")[0].find_all("a")
+            ]
+        )
+        pdf_link = (
+            "https://arxiv.org"
+            + soup.find("div", class_="full-text").find("a", class_="download-pdf")[
+                "href"
+            ]
+        )
+
+        doc = Information(
+            type="arxiv",
+            datetime_str=get_datetime(),
+            id=title,
+            uri=url,
+            content=f"Title: {title}\nAuthors: {authors}\nAbstract: {abstract}\nLink: {pdf_link}",
+        )
+
+        return doc
 
 
 if __name__ == "__main__":
