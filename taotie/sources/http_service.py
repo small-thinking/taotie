@@ -2,6 +2,7 @@
 """
 import asyncio
 import traceback
+from urllib.parse import urlparse
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -46,7 +47,7 @@ class HttpService(BaseSource):
                 ) as response:
                     content = await response.text()
                     doc = None
-                    if content_type in ["html", "github-repo"]:
+                    if content_type == "html":
                         elements = partition_html(text=content)
                         message = "\n".join([str(e) for e in elements])
                         doc = Information(
@@ -56,6 +57,8 @@ class HttpService(BaseSource):
                             uri=url,
                             content=message[: self.truncate_size],
                         )
+                    elif content_type == "github-repo":
+                        doc = await self._parse_github_repo(url, content)
                     elif "arxiv.org/abs/" in url:
                         # Parse the arxiv link. Extract the title, abstract, authors, and link to the paper.
                         doc = await self._parse_arxiv(url, content)
@@ -79,6 +82,21 @@ class HttpService(BaseSource):
 
     async def _cleanup(self):
         pass
+
+    async def _parse_github_repo(self, url: str, content: str) -> Information:
+        elements = partition_html(text=content)
+        message = "\n".join([str(e) for e in elements])
+        # Only keep the last two sections of the github repo and use it for the id.
+        parsed_url = urlparse(url)
+        last_two_segments = parsed_url.path.split("/")[-2:]
+        id = "/" + "/".join(last_two_segments)
+        return Information(
+            type="github-repo",
+            datetime_str=get_datetime(),
+            id=id,
+            uri=url,
+            content=message[: self.truncate_size],
+        )
 
     async def _parse_arxiv(self, url: str, content: str) -> Information:
         """Parse the arxiv link. Extract the title, abstract, authors, and link to the paper."""
