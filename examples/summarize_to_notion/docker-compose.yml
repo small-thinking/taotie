@@ -5,7 +5,11 @@ services:
     image: redis
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      # mount the local Redis configuration file into the container
+      - ./examples/summarize_to_notion/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis_data:/dedup-data  # mount the Redis data volume into the container
     restart: always
     container_name: taotie-redis
 
@@ -17,3 +21,6 @@ services:
       - "6543:6543"
     depends_on:
       - redis
+
+volumes:
+  redis_data:  # define a named volume 'redis_data' that will persist Redis data even if the container is deleted
