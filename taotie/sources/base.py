@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue
+from taotie.storage.memory import DedupMemory
 from taotie.utils import *
 
 
@@ -15,12 +16,19 @@ class BaseSource(ABC):
 
     """
 
-    def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
+    def __init__(
+        self,
+        sink: MessageQueue,
+        verbose: bool = False,
+        dedup_memory: Optional[DedupMemory] = None,
+        **kwargs,
+    ):
         load_dotenv()
         if not sink:
             raise ValueError("The sink cannot be None.")
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
         self.sink = sink
+        self.dedup_memory = dedup_memory
         atexit.register(self._cleanup)
 
     def __str__(self):
@@ -30,15 +38,27 @@ class BaseSource(ABC):
     async def _cleanup(self):
         """Clean up the source."""
 
-    async def _send_data(self, information: Information):
+    async def _send_data(self, information: Information) -> bool:
         """This function is used to send the grabbed data to the message queue.
         It is supposed to be called within the callback function of the streaming
         function or in the forever loop.
 
         Args:
             information (Information): The data to send.
+
+        Returns:
+            bool: True if the data is sent successfully, False otherwise.
         """
+        if self.dedup_memory:
+            id = information.get_id()
+            if await self.dedup_memory.exists(id):
+                self.logger.warning(f"Duplicated information: {id}, will ignore.")
+                return False
         await self.sink.put(information.encode())
+        # Record the index.
+        if self.dedup_memory:
+            await self.dedup_memory.check_and_save(id)
+        return True
 
     @abstractmethod
     async def run(self):

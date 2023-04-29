@@ -10,6 +10,7 @@ from taotie.orchestrator import Orchestrator
 from taotie.sources.github import GithubTrends
 from taotie.sources.http_service import HttpService
 from taotie.sources.twitter import TwitterSubscriber
+from taotie.storage.memory import DedupMemory
 from taotie.storage.notion import NotionStorage
 from taotie.utils import load_env
 
@@ -30,6 +31,7 @@ def create_notion_summarizer():
     storage = NotionStorage(
         root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
     )
+    dedup_memory = DedupMemory(redis_url=redis_url)
     consumer = SimpleSummarizer(
         buffer_size=1000,
         summarize_instruction=instruction,
@@ -54,10 +56,12 @@ def create_notion_summarizer():
     # twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
     # orchestrator.add_source(twitter_source)
     # Github source.
-    github_source = GithubTrends(sink=mq, verbose=verbose)
+    github_source = GithubTrends(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
     orchestrator.add_source(github_source)
     # # Http service source.
-    http_service_source = HttpService(sink=mq, verbose=verbose, truncate_size=200000)
+    http_service_source = HttpService(
+        sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
+    )
     orchestrator.add_source(http_service_source)
     asyncio.run(orchestrator.run())
 

@@ -31,6 +31,10 @@ class Information:
             **kwargs,
         }
 
+    def get_id(self) -> str:
+        """Customized logic for object id."""
+        return self.data["id"]
+
     def __repr__(self):
         raise self.encode()
 
