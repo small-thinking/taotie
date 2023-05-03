@@ -89,7 +89,7 @@ class NotionStorage(Storage):
                     "text": {"content": processed_item.get("summary", "N/A")},
                 }
             ],
-            "Topics": [],
+            "Topics": [{"name": item} for item in processed_item.get("tags", [])],
         }
         children = await self.create_page_blocks(item, processed_item)
 
