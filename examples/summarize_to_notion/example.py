@@ -24,10 +24,7 @@ def create_notion_summarizer():
     redis_url = "taotie-redis"
     channel_name = "taotie"
     mq = RedisMessageQueue(redis_url=redis_url, channel_name=channel_name, verbose=True)
-    instruction = """
-    Please summarize the following collected json data in an informative way in Chinese and THEN in English.
-    NO NEED TO MENTION TYPE. Just directly summarize the content in a CONCISE and COMPREHENSIvE way.
-    """
+    instruction = None
     storage = NotionStorage(
         root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
     )
