@@ -15,7 +15,8 @@ services:
 
   taotie:
     build:
-      context: ${PWD}
+      # Should be a relative path to the Compose file’s parent folder (${PWD} doesn't work on Ubuntu)
+      context: ../../
       dockerfile: ./examples/summarize_to_notion/Dockerfile
     ports:
       - "6543:6543"
