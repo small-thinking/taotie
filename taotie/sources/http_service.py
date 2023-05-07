@@ -47,7 +47,15 @@ class HttpService(BaseSource):
                 ) as response:
                     content = await response.text()
                     doc = None
-                    if content_type == "html":
+
+                    if content_type == "github-repo":
+                        doc = await self._parse_github_repo(url, content)
+                    elif "arxiv.org/abs/" in url:
+                        # Parse the arxiv link. Extract the title, abstract, authors, and link to the paper.
+                        doc = await self._parse_arxiv(url, content)
+                    elif "application/pdf" in content_type:
+                        message = "pdf"
+                    elif content_type in ["html", "blog"]:
                         elements = partition_html(text=content)
                         message = "\n".join([str(e) for e in elements])
                         doc = Information(
@@ -57,13 +65,6 @@ class HttpService(BaseSource):
                             uri=url,
                             content=message[: self.truncate_size],
                         )
-                    elif content_type == "github-repo":
-                        doc = await self._parse_github_repo(url, content)
-                    elif "arxiv.org/abs/" in url:
-                        # Parse the arxiv link. Extract the title, abstract, authors, and link to the paper.
-                        doc = await self._parse_arxiv(url, content)
-                    elif "application/pdf" in content_type:
-                        message = "pdf"
                     else:
                         return f"unknown content type {content_type}."
                     if doc:
