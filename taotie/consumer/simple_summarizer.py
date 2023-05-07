@@ -31,8 +31,7 @@ class SimpleSummarizer(Consumer):
         if not self.summarize_instruction:
             self.summarize_instruction = """
             Please follow the instructions below to generate the json formated response:
-            1. Summarize the following collected json data wrapped by triple quotes in an
-            informative way in BOTH Chinese AND in English.
+            1. Summarize the following collected json data wrapped by triple quotes in BOTH Chinese AND English.
 
             2. Plese summarize the content CONCISELY, ACCURATELY, and COMPREHENSIVELY.
             And CONCATENATE the Chinese and English summaries with \n\n in ONE "summary" field.
