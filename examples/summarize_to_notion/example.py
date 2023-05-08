@@ -5,7 +5,7 @@ import os
 
 from taotie.consumer.simple_summarizer import SimpleSummarizer
 from taotie.gatherer import Gatherer
-from taotie.message_queue import RedisMessageQueue, SimpleMessageQueue
+from taotie.message_queue import RedisMessageQueue
 from taotie.orchestrator import Orchestrator
 from taotie.sources.github import GithubTrends
 from taotie.sources.http_service import HttpService

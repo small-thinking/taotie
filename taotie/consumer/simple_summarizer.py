@@ -44,7 +44,7 @@ class SimpleSummarizer(Consumer):
             And CONCATENATE the Chinese and English summaries with \n\n in ONE "summary" field.
             For example "summary": "这是中文总结。\\n\\nThis is an English summary."
 
-            3. Generate at most 5 tags from {tags}. If nothing relevant, add tag "N/A".
+            3. Generate at most 5 tags from {tags}. If the content is irrelevant to any of the tags, instead use tag "N/A" ONLY.
 
             Please STRICTLY follow the instructions above and output the results in ONE JSON blob, like:
             {{

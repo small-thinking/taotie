@@ -1,5 +1,6 @@
 """Notion reporter will check the gathered knowledge in notion and generate the text report for the AI related contents.
 """
+import asyncio
 import json
 import os
 from datetime import date, datetime, timedelta
@@ -171,43 +172,12 @@ class NotionReporter(BaseReporter):
 async def run():
     load_dotenv()
     database_id = os.environ.get("NOTION_DATABASE_ID")
+    tags = os.environ.get("CANDIDATE_TAGS")
     reporter = NotionReporter(
         knowledge_source_uri=database_id,
         date_lookback=1,
         type_filter="github-repo",
-        topic_filters=[
-            "AI",
-            "CV",
-            "deep-learning",
-            "Deep-learning",
-            "GPT",
-            "GPT-3",
-            "GPT-4",
-            "LM",
-            "LLM",
-            "LLM",
-            "foundation-model",
-            "foundation-models",
-            "deep-learning",
-            "HuggingFace",
-            "image-generation",
-            "inference",
-            "knowledge-extraction",
-            "LLaMA-based-model",
-            "language-model",
-            "large-language-model",
-            "machine-learning",
-            "model",
-            "model-generation",
-            "NLP",
-            "question-answering",
-            "chatbot",
-            "speech-recognition",
-            "text-generation",
-            "text-to-speech",
-            "training",
-            "voice-recognition",
-        ],
+        topic_filters=tags,
         model_type="gpt-4",
     )
     await reporter.distill()
