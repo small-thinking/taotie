@@ -28,8 +28,15 @@ class SimpleSummarizer(Consumer):
         self.buffer_size = 0
         self.max_buffer_size = kwargs.get("max_buffer_size", -1)
         self.summarize_instruction = summarize_instruction
+        tags = kwargs.get(
+            "CANDIDATE_TAGS",
+            "AI,CV,deep-learning,GPT,LLM,foundation-model,HuggingFace,image-generation,"
+            "inference,knowledge-extraction,language-model,machine-learning,model,"
+            "model-generation,NLP,QA,chatbot,speech-recognition,text-generation,"
+            "text-to-speech,training,voice-recognition",
+        )
         if not self.summarize_instruction:
-            self.summarize_instruction = """
+            self.summarize_instruction = f"""
             Please follow the instructions below to generate the json formated response:
             1. Summarize the following collected json data wrapped by triple quotes in BOTH Chinese AND English.
 
@@ -37,17 +44,13 @@ class SimpleSummarizer(Consumer):
             And CONCATENATE the Chinese and English summaries with \n\n in ONE "summary" field.
             For example "summary": "这是中文总结。\\n\\nThis is an English summary."
 
-            3. Generate the English only tags based on the content. For example, if the content is about a github repo,
-            the tags would be like the genre of the repo, e.g. Foundation Model -> FM, speech recognition related -> audio,
-            vision related -> vision, tool related -> tool, and so on. Note we can generate multiple tags.
-
-            4. Please also don't use more than two words as a tag, and use hyphen to connect if there are two words.
+            3. Generate at most 5 tags from {tags}. If nothing relevant, add tag "N/A".
 
             Please STRICTLY follow the instructions above and output the results in ONE JSON blob, like:
-            {
+            {{
                 "summary": "这是一个总结。\\n\\nThis is a summary.",
                 "tags": ["tag1", "tag2"],
-            }
+            }}
             """
         self.max_tokens = kwargs.get("max_tokens", 800)
         self.model_type = kwargs.get("model_type", "gpt-3.5-turbo")
