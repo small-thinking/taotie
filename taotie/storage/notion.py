@@ -54,6 +54,7 @@ class NotionStorage(Storage):
                 "Created Time": {"date": {}},
                 "Summary": {"rich_text": {}},
                 "Topics": {"multi_select": {}},
+                "URL": {"url": {}},
             }
             response = await self.notion.databases.create(
                 parent=parent,
@@ -90,15 +91,23 @@ class NotionStorage(Storage):
                 }
             ],
             "Topics": [{"name": item} for item in processed_item.get("tags", [])],
+            "URL": [
+                {
+                    "type": "text",
+                    "text": {"content": item["uri"]},
+                }
+            ],
         }
         children = await self.create_page_blocks(item, processed_item)
 
-        await self.notion.pages.create(
+        response = await self.notion.pages.create(
             parent={"type": "database_id", "database_id": database_id},
             properties=new_page,
             icon={"type": "emoji", "emoji": icon_emoji},
             children=children[:100],  # Can only add 100 blocks.
         )
+        if "id" not in response:
+            raise ValueError(f"Failed to add page to database: {response}")
         self.logger.info("Page added to database.")
 
     async def create_page_blocks(
