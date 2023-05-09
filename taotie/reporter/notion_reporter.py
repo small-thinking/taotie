@@ -167,21 +167,3 @@ class NotionReporter(BaseReporter):
         )
         result = response.choices[0].message.content
         return result
-
-
-async def run():
-    load_dotenv()
-    database_id = os.environ.get("NOTION_DATABASE_ID")
-    tags = os.environ.get("CANDIDATE_TAGS")
-    reporter = NotionReporter(
-        knowledge_source_uri=database_id,
-        date_lookback=1,
-        type_filter="github-repo",
-        topic_filters=tags,
-        model_type="gpt-4",
-    )
-    await reporter.distill()
-
-
-if __name__ == "__main__":
-    asyncio.run(run())
