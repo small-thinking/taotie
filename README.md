@@ -83,3 +83,9 @@ Click the entry can show the details.
     <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
 </p>
+
+## Tools
+1. Tools to generate the report based on the gathered data in notion database.
+```
+python taotie/tools.py
+```
