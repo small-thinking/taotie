@@ -22,7 +22,7 @@ class NotionReporter(BaseReporter):
         self,
         knowledge_source_uri: str,
         date_lookback: int,
-        type_filter: str,
+        type_filters: List[str],
         topic_filters: List[str],
         verbose: bool = False,
         **kwargs,
@@ -36,7 +36,7 @@ class NotionReporter(BaseReporter):
         if not self.token:
             raise ValueError("Please set the Notion token in .env.")
         self.date_lookback = max(0, date_lookback)
-        self.type_filter = type_filter
+        self.type_filters = type_filters
         self.topic_filters = topic_filters
         # Model configs.
         if not os.getenv("OPENAI_API_KEY"):
@@ -54,7 +54,7 @@ class NotionReporter(BaseReporter):
             including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
             Please make the summary as informative as possible.
         4. Please generate the description in an attractive way, so that the readers will be willing to check the content.
-        5. Rank and only keep at most the top 10 items based on the recommendation strength.
+        5. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
 
         """
 
@@ -72,6 +72,7 @@ class NotionReporter(BaseReporter):
         """
         doc_list = await self._retrieve_data()
         self.logger.output(f"Number docs retrieved: {len(doc_list)}\n")
+        self.logger.output(json.dumps(doc_list, indent=2))
         report = await self._generate_report(doc_list)
         self.logger.output(f"{report}\n", color=Fore.BLUE)
 
@@ -89,13 +90,22 @@ class NotionReporter(BaseReporter):
                         "after": date_start,
                     },
                 },
-                {"property": "Type", "select": {"equals": self.type_filter}},
-                {"or": []},
+                {"or": []},  # type filter.
+                {"or": []},  # topic filter.
             ]
         }
-        # # Add tag filters.
+        and_blob: List[Any] = filter_params["and"]
+        # Add type filters.
+        if self.type_filters:
+            for type_filter in self.type_filters:
+                and_blob[1]["or"].append(
+                    {
+                        "property": "Type",
+                        "select": {"equals": type_filter},
+                    }
+                )
+        # Add tag filters.
         if self.topic_filters:
-            and_blob: List[Any] = filter_params["and"]
             for topic in self.topic_filters:
                 and_blob[-1]["or"].append(
                     {
@@ -144,7 +154,7 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 4000 if self.model_type == "gpt-3.5-turbo" else 8000
+        truncate_size = 3800 if self.model_type == "gpt-3.5-turbo" else 7800
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
