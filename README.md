@@ -87,5 +87,5 @@ Click the entry can show the details.
 ## Tools
 1. Tools to generate the report based on the gathered data in notion database.
 ```
-python taotie/tools.py
+python taotie/tools.py report
 ```
