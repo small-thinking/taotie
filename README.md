@@ -89,3 +89,8 @@ Click the entry can show the details.
 ```
 python taotie/tools.py report
 ```
+
+<p align="center">
+    <img src="./images/example-report.png" alt="drawing"/>
+    <br>Example Report
+</p>
