@@ -41,7 +41,7 @@ class SimpleSummarizer(Consumer):
             1. Summarize the following collected json data wrapped by triple quotes in BOTH Chinese AND English.
 
             2. Plese summarize the content CONCISELY, ACCURATELY, and COMPREHENSIVELY.
-            And CONCATENATE the Chinese and English summaries with \n\n in ONE "summary" field.
+            And CONCATENATE the Chinese and English summaries with \n\n IN ONE "summary" FIELD.
             For example "summary": "这是中文总结。\\n\\nThis is an English summary."
 
             3. Generate at most 5 tags from {tags}. If the content is irrelevant to any of the tags, instead use tag "N/A" ONLY.
@@ -65,14 +65,18 @@ class SimpleSummarizer(Consumer):
         # Save to storage.
         if self.storage:
             # Parse the output as json.
-            json_obj = json.loads(result)
-            # processed_data = {"summary": json_obj.get("summary", "N/A")}
-            processed_data = json_obj
-            # TODO: This is a hack. We should have a better way to do this.
-            list_of_tuples = [(raw, processed_data) for raw in messages]
-            await self.storage.save(list_of_tuples)
-            self.logger.info(f"Saved to storage.")
-        self.buffer.clear()
+            try:
+                json_obj = json.loads(result)
+                # processed_data = {"summary": json_obj.get("summary", "N/A")}
+                processed_data = json_obj
+                # TODO: This is a hack. We should have a better way to do this.
+                list_of_tuples = [(raw, processed_data) for raw in messages]
+                await self.storage.save(list_of_tuples)
+                self.logger.info(f"Saved to storage.")
+            except:
+                self.logger.error(f"Failed to parse the output as json.")
+            finally:
+                self.buffer.clear()
 
     async def gpt_summary(self, input: str) -> str:
         """A tiny example use case of using LLM to process the gathered information."""
