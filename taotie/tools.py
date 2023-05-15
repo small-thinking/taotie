@@ -14,25 +14,25 @@ def parse_args(parser: argparse.ArgumentParser):
     # Sub-parser for report
     report_parser = subparsers.add_parser("report", help="Generate a report")
     report_parser.add_argument(
-        "--date_lookback",
+        "--date-lookback",
         type=int,
         default=1,
         help="Number of days to look back for report",
     )
     report_parser.add_argument(
-        "--type_filters",
+        "--type-filters",
         type=str,
         default="github-repo",
         help="Comma-separated list of type filters",
     )
     report_parser.add_argument(
-        "--topic_filters",
+        "--topic-filters",
         type=str,
         default="",
         help="Comma-separated list of topic filters",
     )
     report_parser.add_argument(
-        "--model_type", type=str, default="gpt-4", help="Model type for report"
+        "--model-type", type=str, default="gpt-4", help="Model type for report"
     )
     report_parser.add_argument(
         "--language", type=str, default="Chinese", help="Language for report"

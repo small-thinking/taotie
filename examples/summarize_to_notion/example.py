@@ -7,6 +7,7 @@ from taotie.consumer.simple_summarizer import SimpleSummarizer
 from taotie.gatherer import Gatherer
 from taotie.message_queue import RedisMessageQueue
 from taotie.orchestrator import Orchestrator
+from taotie.sources.arxiv import Arxiv
 from taotie.sources.github import GithubTrends
 from taotie.sources.http_service import HttpService
 from taotie.sources.twitter import TwitterSubscriber
@@ -60,6 +61,9 @@ def create_notion_summarizer():
         sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
     )
     orchestrator.add_source(http_service_source)
+    # arxiv source.
+    arxiv_source = Arxiv(sink=mq, verbose=verbose)
+    orchestrator.add_source(arxiv_source)
     asyncio.run(orchestrator.run())
 
 
