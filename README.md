@@ -6,7 +6,7 @@
 
 Let Taotie be your helper to extract useful knowledge out of massive noisy information. It consists of three main components:
 
-* **Sources**: These are the information sources that TaoTie can subscribe to. Currently, TaoTie supports Twitter, GitHub, and HTTP sources.
+* **Sources**: These are the information sources that TaoTie can subscribe to. Currently, TaoTie supports Twitter, GitHub, arXiv, and HTTP sources.
 * **Consumers**: These are the agents that TaoTie uses to summarize the information. TaoTie can be integrated with any Language Model (LLM) agent, and only a thin wrapper is needed to integrate the agent with TaoTie.
 * **Storage**: This is where TaoTie stores the summarized information. Currently, TaoTie supports Notion, but it can be configured to use other storage solutions as well.
 
@@ -30,10 +30,16 @@ Create a .env file and add the necessary API tokens:
 
 ```bash
 OPENAI_API_KEY=<your OpenAI API key>
-TWITTER_BEARER_TOKEN=<your Twitter bearer token>  # Please follow https://developer.twitter.com/en/portal.
+# Please follow https://developers.notion.com/docs/create-a-notion-integration.
+NOTION_TOKEN=<your Notion API token>  
+# The id of the page where you want to dump the summary.
+NOTION_ROOT_PAGE_ID=<the ID of the page where you want to store the summaries>
 
-NOTION_TOKEN=<your Notion API token>  # Please follow https://developers.notion.com/docs/create-a-notion-integration.
-NOTION_ROOT_PAGE_ID=<the ID of the page where you want to store the summaries>  # The id of the page where you want to dump the summary.
+# (Optional) Please follow https://developer.twitter.com/en/portal.
+TWITTER_BEARER_TOKEN=<your Twitter bearer token>  
+
+# (Optional) The list of authors whose papers you care about.
+ARXIV_AUTHORS=Yann LeCun,Kaiming He,Ross Girshick,Piotr Dollár,Alec Radford,Ilya Sutskever,Dario Amodei,Geoffrey E. Hinton
 ```
 
 ### 2. Build and run the example:
