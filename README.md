@@ -87,7 +87,7 @@ Click the entry can show the details.
 ## Tools
 1. Tools to generate the report based on the gathered data in notion database.
 ```
-python taotie/tools.py report
+python taotie/tools.py report --date-lookback 3 --type-filter github-repo
 ```
 
 <p align="center">

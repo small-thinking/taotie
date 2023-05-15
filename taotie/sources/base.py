@@ -27,6 +27,7 @@ class BaseSource(ABC):
         if not sink:
             raise ValueError("The sink cannot be None.")
         self.logger = Logger(logger_name=os.path.basename(__file__), verbose=verbose)
+        self.verbose = (verbose,)
         self.sink = sink
         self.dedup_memory = dedup_memory
         atexit.register(self._cleanup)

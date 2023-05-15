@@ -132,7 +132,7 @@ class HttpService(BaseSource):
             datetime_str=get_datetime(),
             id=title,
             uri=url,
-            content=f"Title: {title}\nAuthors: {authors}\nAbstract: {abstract}\nLink: {pdf_link}",
+            content=f"Title: {title}\n\nAuthors: {authors}\n\nAbstract: {abstract}",
         )
 
         return doc
