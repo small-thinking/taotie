@@ -24,9 +24,11 @@ RUN apt-get update && apt-get install -y \
         python3-dev \
         tcl-dev \
         tk-dev \
+        fonts-noto-cjk \
         zlib1g-dev
 
 ENV PATH="${PATH}:/usr/local/bin"
+ENV IS_DOCKER=true
 
 # Copy the project files into the container
 WORKDIR /app

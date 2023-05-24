@@ -58,6 +58,7 @@ class GithubTrends(BaseSource):
                     readme_url = (
                         f"https://raw.githubusercontent.com{repo_name}/master/README.md"
                     )
+                    repo_readme = ""
                     try:
                         async with session.get(
                             readme_url, verify_ssl=False
@@ -65,11 +66,15 @@ class GithubTrends(BaseSource):
                             if readme_response.status == 200:
                                 repo_readme = await readme_response.text()
                                 repo_readme = repo_readme[: self.readme_truncate_size]
+                            else:
+                                self.logger.warning(
+                                    f"Failed to fetch from {readme_url}. Status: {readme_response.status}"
+                                )
+                                raise Exception(readme_response.status)
                     except Exception as e:
                         self.logger.warning(
                             f"Failed to fetch from {readme_url}. Reason: {e}"
                         )
-                        repo_readme = ""
 
                     github_event = Information(
                         type="github-repo",

@@ -99,7 +99,6 @@ class RedisMessageQueue(MessageQueue):
 
     async def _put(self, message_json: str):
         """Publish the message to the Redis channel."""
-        print(f"put message: {message_json} to {self.channel_name}")
         await self.redis.publish(self.channel_name, message_json)
 
     async def get(self, batch_size: int = 1) -> List[str]:
