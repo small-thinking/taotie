@@ -3,7 +3,7 @@
 import asyncio
 import os
 
-from taotie.consumer.simple_summarizer import SimpleSummarizer
+from taotie.consumer.info_summarizer import InfoSummarizer
 from taotie.gatherer import Gatherer
 from taotie.message_queue import RedisMessageQueue
 from taotie.orchestrator import Orchestrator
@@ -29,8 +29,9 @@ def create_notion_summarizer():
     storage = NotionStorage(
         root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
     )
-    dedup_memory = DedupMemory(redis_url=redis_url)
-    consumer = SimpleSummarizer(
+    # dedup_memory = DedupMemory(redis_url=redis_url)
+    dedup_memory = None
+    consumer = InfoSummarizer(
         buffer_size=1000,
         summarize_instruction=instruction,
         verbose=verbose,
@@ -62,7 +63,7 @@ def create_notion_summarizer():
     )
     orchestrator.add_source(http_service_source)
     # arxiv source.
-    arxiv_source = Arxiv(sink=mq, verbose=verbose)
+    arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
     orchestrator.add_source(arxiv_source)
     asyncio.run(orchestrator.run())
 

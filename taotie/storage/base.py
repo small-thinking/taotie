@@ -14,6 +14,8 @@ class Storage(ABC):
         self.logger = Logger(os.path.basename(__file__), verbose=verbose)
 
     @abstractmethod
-    async def save(self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]]):
+    async def save(
+        self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]], image_urls: List[str]
+    ):
         """Save the data to the storage."""
         raise NotImplementedError

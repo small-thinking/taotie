@@ -49,12 +49,15 @@ class NotionReporter(BaseReporter):
         Please generate a report that will be published by the Wechat blog based on the json string in the triple quotes.
         Please follow the following rules STRICTLY:
         1. Please summarize in {language}.
-        2. Please given a short overall summary of the article that is about a report of the advances of AI.
-        3. Please generate each item as an individual section, include the URL in each of the item, and \
+        2. Please skip the items that are not relevant to AI or the topics of {self.topic_filters}.
+        3. Please given a short overall summary of the article that is about a report of the advances of AI.
+        4. Please generate each item as an individual section, include the URL in each of the item, and \
             including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
             Please make the summary as informative as possible.
-        4. Please generate the description in an attractive way, so that the readers will be willing to check the content.
-        5. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
+        5. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
+        6. Please generate the description in an attractive way, so that the readers will be willing to check the content.
+        7. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
+        8. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作.
 
         """
 
@@ -154,7 +157,7 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 3800 if self.model_type == "gpt-3.5-turbo" else 7800
+        truncate_size = 3600 if self.model_type == "gpt-3.5-turbo" else 7600
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
@@ -163,15 +166,10 @@ class NotionReporter(BaseReporter):
         self.logger.output(
             f"Prompt tokens: {prompt_tokens}, response tokens: {max_tokens}"
         )
-        response = openai.ChatCompletion.create(
-            model=self.model_type,
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"{self.report_prompt}",
-                },
-                {"role": "user", "content": content_prompt},
-            ],
+        response = chat_completion(
+            model_type=self.model_type,
+            prompt=self.report_prompt,
+            content=content_prompt,
             max_tokens=max_tokens,
             temperature=0.0,
         )

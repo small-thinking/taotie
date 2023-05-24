@@ -42,12 +42,16 @@ class Consumer(ABC):
         """Process the message."""
         if self.dedup:
             messages = await self._dedup(messages)
+        if len(messages) == 0:
+            return
         await self._process(messages)
 
     async def _dedup(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Deduplicate the messages by id in memory."""
         deduped_messages = [m for m in messages if m["id"] not in self.in_memory_index]
-        self.logger.info(f"Deduped: {len(messages) - len(deduped_messages)} messages.")
+        self.logger.info(
+            f"After deduped: Will remove {len(messages) - len(deduped_messages)} messages."
+        )
         self.in_memory_index.update({m["id"]: m for m in deduped_messages})
         return deduped_messages
 
