@@ -82,7 +82,7 @@ class InfoSummarizer(Consumer):
         result_json_str = await self.gpt_summary(concatenated_messages)
         # result = await asyncio.create_task(self.gpt_summary(concatenated_messages))
         self.logger.info(
-            rf"""Summary result:
+            rf"""JSON summary result:
             {result_json_str}
             """
         )
@@ -96,7 +96,7 @@ class InfoSummarizer(Consumer):
         if self.storage:
             # Parse the output as json.
             try:
-                processed_data = json.loads(result_json_str)
+                processed_data = parse_json(result_json_str)
             except json.JSONDecodeError as e:
                 self.logger.error(
                     f"Failed to parse the output as json (1st attempt). Error: {str(e)}"
@@ -104,7 +104,7 @@ class InfoSummarizer(Consumer):
                 if "Extra data" in str(e):
                     try:
                         result_json_str = "{" + result_json_str + "}"
-                        processed_data = json.loads(result_json_str)
+                        processed_data = parse_json(result_json_str)
                         self.logger.info(
                             f"Succeeded parse the output. The result is: {str(processed_data)}"
                         )
@@ -152,11 +152,29 @@ class InfoSummarizer(Consumer):
     async def knowledge_graph_summary(
         self, text_summary: str, metadata: Dict[str, Any]
     ) -> str:
-        rdf_triplets = await text_to_triplets(text_summary, metadata)
-        for triplet in rdf_triplets:
-            self.logger.info(f"Triplets: \n{triplet}\n")
+        try:
+            rdf_triplets = await text_to_triplets(text_summary, metadata, self.logger)
+            self.logger.info(f"Successfully generated triplets: \n{rdf_triplets}\n")
+        except Exception as e:
+            self.logger.error(f"Error generating triplets: {e}")
+            return ""
 
-        knowledge_graph_image_path = await async_construct_knowledge_graph(rdf_triplets)
-        self.logger.info(f"Knowledge graph image: {knowledge_graph_image_path}")
-        image_url = await upload_image_to_imgur(knowledge_graph_image_path)
-        return image_url
+        try:
+            knowledge_graph_image_path = await async_construct_knowledge_graph(
+                rdf_triplets
+            )
+            self.logger.info(
+                f"Successfully generated knowledge graph image: {knowledge_graph_image_path}"
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Error generating knowledge graph image from triplets: {e}"
+            )
+            return ""
+
+        try:
+            image_url = await upload_image_to_imgur(knowledge_graph_image_path)
+            return image_url
+        except Exception as e:
+            self.logger.error(f"Error uploading knowledge graph image to Imgur: {e}")
+            return ""

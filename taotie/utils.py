@@ -7,6 +7,7 @@ import random
 import re
 import ssl
 import sys
+import threading
 from asyncio import Lock
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -56,14 +57,17 @@ def fetch_url_content(url: str):
         )
 
 
-def preprocess_json(json_str):
-    # # Fix missing quotation marks around keys
-    # json_str = json_str.replace("{", '{"').replace(":", '":"')
-
-    # Fix missing quotation marks around string values
-    json_str = re.sub(r'(?<!\\)"([^"]*)"(?<!\\)"', r'"\1"', json_str)
-
-    return json_str
+def parse_json(json_str):
+    try:
+        # Try to parse the string with json.loads. If it's not malformed, it will succeed.
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        # If it's malformed, add quotes around keys and values that don't have them.
+        pattern = r"([\{\s,])([^:\{\}\[\]\s]+):"
+        fixed_json = re.sub(pattern, r'\1"\2":', json_str)
+        pattern = r': ([^"\{\}\[\]\s]+)([,\}\]])'
+        fixed_json = re.sub(pattern, r': "\1"\2', fixed_json)
+        return json.loads(fixed_json)
 
 
 @retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
@@ -93,10 +97,12 @@ def chat_completion(
 # The logger should be able to log to stdout and display the datetime, caller, and line of code.
 class Logger:
     _instance = None
+    _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(
@@ -160,9 +166,9 @@ class Logger:
 async def text_to_triplets(
     text_summary: str,
     metadata: Dict[str, Any],
+    logger: Logger,
     model_type: str = "gpt-3.5-turbo",
     max_tokens: int = 2500,
-    logger: Optional[Logger] = None,
 ) -> List[str]:
     """Leverage prompt to use LLM to convert text summary to RDF triplets."""
     metadata_str = "\n".join(f"{key}: {value}" for key, value in metadata.items())
@@ -171,20 +177,53 @@ async def text_to_triplets(
     {text_summary}
     {metadata_str}
     """
+    content_type = "generic"
+    if "type" in metadata:
+        content_type = metadata["type"]
 
-    prompt = f"""
-    Please convert the following information about a paper into triplets with the format "'subject' 'attribute' 'object'"? We want to follow the following rules:
-    1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. 'paper_title' 'has-author' 'John Dorr'.
-    2. We want to use the paper title as the main entity.
-    3. We want to include the triplets of the FIRST 2 authors and the LAST author, and link them to the paper title, e.g. '[paper_title]' 'has-author' '[Firstname Lastname]'.
-    4. Create triplets about the afflication of these authors, e.g. '[Firstname Lastname]' 'has-affiliation' '[affiliation]'.
-    5. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
-        Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
-        nlp, multi-modality. etc. For each tag triplet, use the format  '[paper_title]' 'has-concept' '[tag]'.
-    6. Please return a JSON where there is a key triplets with a list of RDF triplets strings. \
+    if content_type == "arxiv":
+        logger.info("Use arxiv prompt.")
+        prompt = f"""
+        Please convert the following information about a paper into triplets with the format "'subject' 'attribute' 'object'"? We want to follow the following rules:
+        1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. 'paper_title' 'has-author' 'John Dorr'.
+        2. We want to use the paper title as the main entity.
+        3. We want to include the triplets of the FIRST 2 authors and the LAST author, and link them to the paper title, e.g. '[paper_title]' 'has-author' '[Firstname Lastname]'.
+        4. Create triplets about the afflication of these authors, e.g. '[Firstname Lastname]' 'has-affiliation' '[affiliation]'.
+        5. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
+            Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
+            nlp, multi-modality. etc. For each tag triplet, use the format  '[paper_title]' 'has-concept' '[tag]'.
+        6. Please return a JSON where THERE IS A KEY "triplets" with a list of RDF triplets strings. \
+            The JSON response will be DIRECTLY feed to a downstream program to parse the json.
+
+        """
+    elif content_type == "github-repo":
+        logger.info("Use github-repo prompt.")
+        prompt = f"""
+        Please convert the following information about a github repository into triplets with the format "'subject' 'attribute' 'object'" \
+            We want to follow the following rules:
+        1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. '[repo_name]' 'has-author' 'John Dorr'.
+        2. We want to use the repo name as the main entity.
+        3. IF there is any information about the language, we would want to include a triplet, '[repo_name]' 'implemented-in' '[language]'.
+        4. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
+            Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
+        5. Please return a JSON where THERE IS A KEY "triplets" with a list of RDF triplets strings. \
+            The JSON response will be DIRECTLY feed to a downstream program to parse the json.
+        """
+    else:  # generic prompt to generate the triplets
+        logger.info("Use generic prompt.")
+        prompt = f"""
+        Please convert the following information into triplets with the format "'subject' 'attribute' 'object'"? \
+            We want to follow the following rules:
+        1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. 'paper_title' 'has-author' 'John Dorr'.
+        2. We want to find out the title and use it as the main entity.
+        3. We want to include the triplets of the FIRST 2 authors and the LAST author, and link them to the paper title, e.g. '[paper_title]' 'has-author' '[Firstname Lastname]'.
+        4. If there is information about the affinitation, create triplets about the afflication of these authors, e.g. '[Firstname Lastname]' 'has-affiliation' '[affiliation]'.
+        5. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
+            Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
+        6. Please return a JSON where THERE IS A KEY "triplets" with a list of RDF triplets strings. \
         The JSON response will be DIRECTLY feed to a downstream program to parse the json.
+        """
 
-    """
     # Call OpenAPI gpt-3.5-turbo with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
@@ -199,9 +238,15 @@ async def text_to_triplets(
     result = response.choices[0].message.content
     json_blob = json.loads(result)
     rdf_triplets = json_blob.get("triplets", [])
+    # LLM may generate each triplets as a list instead of a string.
+    processed_triplets = []
+    for triplet in rdf_triplets:
+        if isinstance(triplet, list):
+            triplet = " ".join(triplet[:3])
+        processed_triplets.append(triplet)
     if logger:
         logger.output(f"RDF triplets: {rdf_triplets}\n", color=Fore.BLUE)
-    return rdf_triplets
+    return processed_triplets
 
 
 def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):

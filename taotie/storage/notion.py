@@ -150,13 +150,17 @@ class NotionStorage(Storage):
         # Upload the images if any.
         if image_urls:
             for image_url in image_urls:
-                page_contents.append(
-                    {
-                        "object": "block",
-                        "type": "image",
-                        "image": {"type": "external", "external": {"url": image_url}},
-                    }
-                )
+                if image_url:
+                    page_contents.append(
+                        {
+                            "object": "block",
+                            "type": "image",
+                            "image": {
+                                "type": "external",
+                                "external": {"url": image_url},
+                            },
+                        }
+                    )
 
         page_contents.extend(
             [
