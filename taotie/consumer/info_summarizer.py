@@ -86,7 +86,6 @@ class InfoSummarizer(Consumer):
             {result_json_str}
             """
         )
-        await asyncio.sleep(10)
         image_url = await self.knowledge_graph_summary(result_json_str, messages[0])
         # image_url = await asyncio.create_task(
         #     self.knowledge_graph_summary(result, messages[0])
