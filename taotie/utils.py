@@ -108,16 +108,17 @@ class Logger:
     def __init__(
         self, logger_name: str, verbose: bool = True, level: Any = logging.INFO
     ):
-        self.logger = logging.getLogger(logger_name)
-        self.verbose = verbose
-        self.logger.setLevel(level=level)
-        self.formatter = logging.Formatter(
-            "%(asctime)s %(levelname)s %(name)s %(message)s (%(filename)s:%(lineno)d)"
-        )
-        self.console_handler = logging.StreamHandler()
-        self.console_handler.setLevel(level=level)
-        self.console_handler.setFormatter(self.formatter)
-        self.logger.addHandler(self.console_handler)
+        if not hasattr(self, "logger"):
+            self.logger = logging.getLogger(logger_name)
+            self.verbose = verbose
+            self.logger.setLevel(level=level)
+            self.formatter = logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s %(message)s (%(filename)s:%(lineno)d)"
+            )
+            self.console_handler = logging.StreamHandler()
+            self.console_handler.setLevel(level=level)
+            self.console_handler.setFormatter(self.formatter)
+            self.logger.addHandler(self.console_handler)
 
     def output(self, message: str, color: str = ansi.Fore.GREEN) -> None:
         print(color + message + Fore.RESET)
