@@ -84,7 +84,7 @@ In your notion, you can see the contents added.
     <br>Subscribed Github Trending
 </p>
 
-Click the entry can show the details.
+Click the entry can show the details, including the knowledge graph summarized for this piece of information.
 <p align="center">
     <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
