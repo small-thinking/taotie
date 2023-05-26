@@ -70,7 +70,10 @@ class InfoSummarizer(Consumer):
 
             4. IF the content contains a link of the image, please extract the link and paste it in the "image" FIELD.
 
-            5. Please STRICTLY follow the instructions above and output the results in ONE JSON blob, like:
+            5. Please STRICTLY follow the instructions above and output the results in ONE JSON blob, \
+                and STRICTLY WRAP EACH KEY OR VALUE WITH DOUBLE QUOTES.
+
+            Some examples:
             Example 1:
             {{
                 "summary": "这是一个总结。\\n\\nThis is a summary.",
@@ -93,16 +96,25 @@ class InfoSummarizer(Consumer):
         concatenated_messages = "\n".join(self.buffer)
         self.logger.info(f"Summarizer received information: {concatenated_messages}\n")
         result_json_str = await self.gpt_summary(concatenated_messages)
-        # result = await asyncio.create_task(self.gpt_summary(concatenated_messages))
+        # Ask LLM to fix the potentially malformed json string.
+        response = chat_completion(
+            model_type=self.model_type,
+            prompt="""
+            You are a json fixer that can fix various types of malformed json strings.
+            Please fix the following json string and return the fixed string in a way that is DIRECTLY PARSABLE by json.loads().
+            """,
+            content=f"""
+            {result_json_str}
+            """,
+            max_tokens=self.max_tokens,
+        )
+        result_json_str = response.choices[0].message.content
         self.logger.info(
-            rf"""JSON summary result:
+            f"""JSON summary result:
             {result_json_str}
             """
         )
         image_url = await self.knowledge_graph_summary(result_json_str, messages[0])
-        # image_url = await asyncio.create_task(
-        #     self.knowledge_graph_summary(result, messages[0])
-        # )
         self.logger.info(f"Knowledge graph image url: {image_url}")
         # Save to storage.
         if self.storage:
@@ -111,30 +123,16 @@ class InfoSummarizer(Consumer):
                 processed_data = parse_json(result_json_str)
             except json.JSONDecodeError as e:
                 self.logger.error(
-                    f"Failed to parse the output as json (1st attempt). Error: {str(e)}"
+                    f"Failed to parse the output as json (1st attempt). Error: {str(e)}, the json string is {result_json_str}"
                 )
-                if "Extra data" in str(e):
-                    try:
-                        result_json_str = "{" + result_json_str + "}"
-                        processed_data = parse_json(result_json_str)
-                        self.logger.info(
-                            f"Succeeded parse the output. The result is: {str(processed_data)}"
-                        )
-                    except Exception:
-                        self.logger.error(
-                            f"Failed to parse the output as json (2nd attempt). Error: {str(e)}"
-                        )
-                        self.buffer.clear()
-                        return
-                else:
-                    self.logger.error(f"Error {str(e)} does not contain 'Extra data'.")
             try:
                 # TODO: This is a hack. We should have a better way to do this.
                 list_of_tuples = [(raw, processed_data) for raw in messages]
                 await self.storage.save(list_of_tuples, image_urls=[image_url])
                 self.logger.info(f"Saved to storage.")
-            except:
-                self.logger.error(f"Failed to save to storage.")
+            except Exception as e:
+                self.logger.error(f"Failed to save to storage. Error: {str(e)}")
+                self.buffer.clear()
             finally:
                 self.buffer.clear()
 

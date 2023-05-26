@@ -57,17 +57,8 @@ def fetch_url_content(url: str):
         )
 
 
-def parse_json(json_str):
-    try:
-        # Try to parse the string with json.loads. If it's not malformed, it will succeed.
-        return json.loads(json_str)
-    except json.JSONDecodeError:
-        # If it's malformed, add quotes around keys and values that don't have them.
-        pattern = r"([\{\s,])([^:\{\}\[\]\s]+):"
-        fixed_json = re.sub(pattern, r'\1"\2":', json_str)
-        pattern = r': ([^"\{\}\[\]\s]+)([,\}\]])'
-        fixed_json = re.sub(pattern, r': "\1"\2', fixed_json)
-        return json.loads(fixed_json)
+def parse_json(json_str: str):
+    return json.loads(json_str)
 
 
 @retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
@@ -169,7 +160,7 @@ async def text_to_triplets(
     metadata: Dict[str, Any],
     logger: Logger,
     model_type: str = "gpt-3.5-turbo",
-    max_tokens: int = 2500,
+    max_tokens: int = 2000,
 ) -> List[str]:
     """Leverage prompt to use LLM to convert text summary to RDF triplets."""
     metadata_str = "\n".join(f"{key}: {value}" for key, value in metadata.items())
@@ -262,13 +253,17 @@ def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
     # Create triplets
     for t in triplets:
         separator = " " if "' '" not in t else "' '"
-        subj, pred, obj = t.split(separator)
-        subj, pred, obj = (
-            subj.replace("'", ""),
-            pred.replace("'", ""),
-            obj.replace("'", ""),
-        )
-        knowledge_graph.add((n[subj], n[pred], n[obj]))
+        try:
+            subj, pred, obj = t.split(separator)
+            subj, pred, obj = (
+                subj.replace("'", ""),
+                pred.replace("'", ""),
+                obj.replace("'", ""),
+            )
+            knowledge_graph.add((n[subj], n[pred], n[obj]))
+        except Exception:
+            logger.warning(f"Failed to parse triplet: {t}")
+            continue
 
     # Create a Networkx Graph and visualize it
     graph = nx.DiGraph()
@@ -356,3 +351,11 @@ async def upload_image_to_imgur(image_path):
             data = await response.json()
 
     return data["data"]["link"]
+
+
+def check_url_exists(url):
+    try:
+        response = requests.head(url)
+        return response.status_code == 200
+    except requests.exceptions.RequestException:
+        return False

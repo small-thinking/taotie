@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource
-from taotie.utils import get_datetime
+from taotie.utils import *
 
 
 class GithubTrends(BaseSource):
@@ -55,9 +55,11 @@ class GithubTrends(BaseSource):
                     repo_star = star_and_fork[0].text.strip()
                     repo_fork = star_and_fork[1].text.strip()
                     # Extract the detailed description from the github main README.md if any.
-                    readme_url = (
-                        f"https://raw.githubusercontent.com{repo_name}/master/README.md"
-                    )
+                    readme_url = f"https://github.com/{repo_name}/blob/master/README.md"
+                    if not check_url_exists(readme_url):
+                        readme_url = (
+                            f"https://github.com/{repo_name}/blob/main/README.md"
+                        )
                     repo_readme = ""
                     try:
                         async with session.get(
