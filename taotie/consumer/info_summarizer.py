@@ -125,22 +125,6 @@ class InfoSummarizer(Consumer):
                 self.logger.error(
                     f"Failed to parse the output as json (1st attempt). Error: {str(e)}, the json string is {result_json_str}"
                 )
-                # if "Extra data" in str(e) or "Expecting value" in str(e):
-                #     try:
-                #         result_json_str = "{" + result_json_str + "}"
-                #         processed_data = parse_json(result_json_str)
-                #         self.logger.info(
-                #             f"Succeeded parse the output. The result is: {str(result_json_str)}"
-                #         )
-                #     except Exception as e:
-                #         self.logger.error(
-                #             f"Failed to parse the output as json (2nd attempt). Error: {str(e)}"
-                #         )
-                #         self.logger.error(result_json_str)
-                #         self.buffer.clear()
-                #         return
-                # else:
-                #     self.logger.error(f"Error {str(e)} does not contain 'Extra data'.")
             try:
                 # TODO: This is a hack. We should have a better way to do this.
                 list_of_tuples = [(raw, processed_data) for raw in messages]
