@@ -31,11 +31,22 @@ class Arxiv(BaseSource):
     async def run(self):
         async with aiohttp.ClientSession() as session:
             while True:
-                for author in self.authors:
+                for idx, author in enumerate(self.authors):
+                    self.logger.info(
+                        f"[{idx}/{len(self.authors)}] Check the published paper by the author [{author}]."
+                    )
                     author_str = "%20".join(author.split(" "))
                     url = f'http://export.arxiv.org/api/query?search_query=au:"{author_str}"&max_results=2&sortBy=submittedDate&sortOrder=descending'
-                    async with session.get(url) as response:
-                        soup = BeautifulSoup(await response.text(), "xml")
+                    try:
+                        async with session.get(url) as response:
+                            soup = BeautifulSoup(await response.text(), "xml")
+                    except aiohttp.client_exceptions.ServerDisconnectedError:
+                        self.logger.error(
+                            f"ArxivSource disconnected. Probably hit rate limit. Retry in 1 min."
+                        )
+                        await asyncio.sleep(60)
+                        async with session.get(url) as response:
+                            soup = BeautifulSoup(await response.text(), "xml")
 
                     entries = soup.find_all("entry")
                     for entry in entries:
