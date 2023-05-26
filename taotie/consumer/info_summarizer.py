@@ -43,16 +43,19 @@ class InfoSummarizer(Consumer):
             2. Plese summarize the content CONCISELY, ACCURATELY, and COMPREHENSIVELY.
             And CONCATENATE the Chinese summaries with \n\n IN ONE "summary" FIELD.
             3. Generate at most 5 tags from {tags}. If the content is irrelevant to any of the tags, instead use tag "N/A" ONLY.
-            4. Please STRICTLY output the results in ONE JSON blob, and WRAP EVERY KEY AND VALUE with double quotes.
+            4. IF the content contains a link of the image, please extract the link and paste it in the "image" FIELD.
+            5. Please STRICTLY output the results in ONE JSON blob, and WRAP EVERY KEY AND VALUE with double quotes.
             Example 1:
             {{
                 "summary": "这是一个总结。",
                 "tags": ["tag1", "tag2"],
+                "image": "https://raw.githubusercontent.com/geohot/tinygrad/master/docs/logo.png",
             }}
             Example 2:
             {{
                 "summary": "Segment Anything是一个新的图像分割任务、模型和数据集项目。",
                 "tags": ["deep-learning", "image-generation"],
+                "image": "docs/assets/SG_img/SG - Horizontal Glow 2.png",
             }}
             """
             self.summarize_instruction = f"""
@@ -65,10 +68,20 @@ class InfoSummarizer(Consumer):
 
             3. Generate at most 5 tags from {tags}. If the content is irrelevant to any of the tags, instead use tag "N/A" ONLY.
 
-            Please STRICTLY follow the instructions above and output the results in ONE JSON blob, like:
+            4. IF the content contains a link of the image, please extract the link and paste it in the "image" FIELD.
+
+            5. Please STRICTLY follow the instructions above and output the results in ONE JSON blob, like:
+            Example 1:
             {{
                 "summary": "这是一个总结。\\n\\nThis is a summary.",
                 "tags": ["tag1", "tag2"],
+                "image": "https://raw.githubusercontent.com/geohot/tinygrad/master/docs/logo.png"
+            }}
+            Example 2:
+            {{
+                "summary": "Segment Anything是一个新的图像分割任务、模型和数据集项目。",
+                "tags": ["deep-learning", "image-generation"],
+                "image": "docs/assets/SG_img/SG - Horizontal Glow 2.png",
             }}
             """
         self.max_tokens = kwargs.get("max_tokens", 800)
@@ -78,7 +91,7 @@ class InfoSummarizer(Consumer):
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
         self.buffer.extend(map(lambda m: json.dumps(m, ensure_ascii=False), messages))
         concatenated_messages = "\n".join(self.buffer)
-        self.logger.debug(f"Summarizer received information: {concatenated_messages}\n")
+        self.logger.info(f"Summarizer received information: {concatenated_messages}\n")
         result_json_str = await self.gpt_summary(concatenated_messages)
         # result = await asyncio.create_task(self.gpt_summary(concatenated_messages))
         self.logger.info(
