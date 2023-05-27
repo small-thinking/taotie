@@ -365,9 +365,9 @@ def extract_representative_image(
     repo_name: str, readme_url: str, logger: Logger
 ) -> str:
     try:
-        response = requests.get(readme_url)
-        response.raise_for_status()  # Raise an exception if the request was not successful
-        content = response.text[:2000]
+        readme_response = requests.get(readme_url)
+        readme_response.raise_for_status()  # Raise an exception if the request was not successful
+        content = readme_response.text[:2000]
     except requests.exceptions.RequestException as e:
         print(f"Error retrieving content from URL: {e}")
     # Extract representative image.
