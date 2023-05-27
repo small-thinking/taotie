@@ -38,27 +38,6 @@ class InfoSummarizer(Consumer):
         )
         if not self.summarize_instruction:
             self.summarize_instruction = f"""
-            Please follow the instructions below to generate the JSON response:
-            1. Summarize the following collected data wrapped by triple quotes in Chinese.
-            2. Plese summarize the content CONCISELY, ACCURATELY, and COMPREHENSIVELY.
-            And CONCATENATE the Chinese summaries with \n\n IN ONE "summary" FIELD.
-            3. Generate at most 5 tags from {tags}. If the content is irrelevant to any of the tags, instead use tag "N/A" ONLY.
-            4. IF the content contains a link of the image, please extract the link and paste it in the "image" FIELD.
-            5. Please STRICTLY output the results in ONE JSON blob, and WRAP EVERY KEY AND VALUE with double quotes.
-            Example 1:
-            {{
-                "summary": "这是一个总结。",
-                "tags": ["tag1", "tag2"],
-                "image": "https://raw.githubusercontent.com/geohot/tinygrad/master/docs/logo.png",
-            }}
-            Example 2:
-            {{
-                "summary": "Segment Anything是一个新的图像分割任务、模型和数据集项目。",
-                "tags": ["deep-learning", "image-generation"],
-                "image": "docs/assets/SG_img/SG - Horizontal Glow 2.png",
-            }}
-            """
-            self.summarize_instruction = f"""
             Please follow the instructions below to generate the json formated response:
             1. Summarize the following collected json data wrapped by triple quotes in Chinese.
 
@@ -68,9 +47,7 @@ class InfoSummarizer(Consumer):
 
             3. Generate at most 5 tags from {tags}. If the content is irrelevant to any of the tags, instead use tag "N/A" ONLY.
 
-            4. IF the content contains a link of the image, please extract the link and paste it in the "image" FIELD.
-
-            5. Please STRICTLY follow the instructions above and output the results in ONE JSON blob, \
+            4. Please STRICTLY follow the instructions above and output the results in ONE JSON blob, \
                 and STRICTLY WRAP EACH KEY OR VALUE WITH DOUBLE QUOTES.
 
             Some examples:
@@ -78,13 +55,11 @@ class InfoSummarizer(Consumer):
             {{
                 "summary": "这是一个总结。\\n\\nThis is a summary.",
                 "tags": ["tag1", "tag2"],
-                "image": "https://raw.githubusercontent.com/geohot/tinygrad/master/docs/logo.png"
             }}
             Example 2:
             {{
                 "summary": "Segment Anything是一个新的图像分割任务、模型和数据集项目。",
                 "tags": ["deep-learning", "image-generation"],
-                "image": "docs/assets/SG_img/SG - Horizontal Glow 2.png",
             }}
             """
         self.max_tokens = kwargs.get("max_tokens", 800)
@@ -92,6 +67,8 @@ class InfoSummarizer(Consumer):
         self.logger.debug("PrintConsumer initialized.")
 
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
+        id = messages[0].get("id", "")
+        info_type = messages[0].get("type", "")
         self.buffer.extend(map(lambda m: json.dumps(m, ensure_ascii=False), messages))
         concatenated_messages = "\n".join(self.buffer)
         self.logger.info(f"Summarizer received information: {concatenated_messages}\n")
@@ -114,8 +91,30 @@ class InfoSummarizer(Consumer):
             {result_json_str}
             """
         )
-        image_url = await self.knowledge_graph_summary(result_json_str, messages[0])
-        self.logger.info(f"Knowledge graph image url: {image_url}")
+        representative_image_url = ""
+        if info_type == "github-repo":
+            readme_url = f"https://raw.githubusercontent.com{id}/main/README.md"
+            if not check_url_exists(readme_url):
+                readme_url = f"https://raw.githubusercontent.com{id}/master/README.md"
+            # Extract the representative image from the repo.
+            representative_image_json = extract_representative_image(
+                repo_name=id, readme_url=readme_url, logger=self.logger
+            )
+            try:
+                image_json_obj = json.loads(representative_image_json)
+                representative_image_url = image_json_obj.get("image_url", "")
+                self.logger.info(
+                    f"Extracted representative image {representative_image_url} from {id}."
+                )
+            except Exception as e:
+                self.logger.error(
+                    f"Failed to extract representative image from {id}. The image json string: {representative_image_json}"
+                )
+        # Generate the knowledge graph image url.
+        knowledge_graph_image_url = await self.knowledge_graph_summary(
+            result_json_str, messages[0]
+        )
+        self.logger.info(f"Knowledge graph image url: {knowledge_graph_image_url}")
         # Save to storage.
         if self.storage:
             # Parse the output as json.
@@ -128,7 +127,10 @@ class InfoSummarizer(Consumer):
             try:
                 # TODO: This is a hack. We should have a better way to do this.
                 list_of_tuples = [(raw, processed_data) for raw in messages]
-                await self.storage.save(list_of_tuples, image_urls=[image_url])
+                await self.storage.save(
+                    list_of_tuples,
+                    image_urls=[representative_image_url, knowledge_graph_image_url],
+                )
                 self.logger.info(f"Saved to storage.")
             except Exception as e:
                 self.logger.error(f"Failed to save to storage. Error: {str(e)}")

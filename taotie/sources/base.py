@@ -50,6 +50,7 @@ class BaseSource(ABC):
         Returns:
             bool: True if the data is sent successfully, False otherwise.
         """
+        # Skip duplicate information according to the id.
         if self.dedup_memory:
             id = information.get_id()
             if await self.dedup_memory.exists(id):

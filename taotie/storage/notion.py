@@ -141,7 +141,7 @@ class NotionStorage(Storage):
                     "rich_text": [
                         {
                             "type": "text",
-                            "text": {"content": "Knowledge Graph"},
+                            "text": {"content": "Summary Images"},
                         }
                     ]
                 },
