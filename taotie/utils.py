@@ -359,3 +359,45 @@ def check_url_exists(url):
         return response.status_code == 200
     except requests.exceptions.RequestException:
         return False
+
+
+def extract_representative_image(
+    repo_name: str, readme_url: str, logger: Logger
+) -> str:
+    try:
+        readme_response = requests.get(readme_url)
+        readme_response.raise_for_status()  # Raise an exception if the request was not successful
+        content = readme_response.text[:2000]
+    except requests.exceptions.RequestException as e:
+        print(f"Error retrieving content from URL: {e}")
+    # Extract representative image.
+    load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    content = f"""
+        ```
+        repo_name: {repo_name}
+        {content}
+        ```
+        """
+    logger.info(f"Extracting representative image from {repo_name}")
+    logger.info(f"Content: {content}")
+    response = chat_completion(
+        "gpt-3.5-turbo",
+        prompt=f"""
+        You are an information extractor that is going to extract the representative images according
+        to the content of the markdown file. Here is the context and requirements:
+        1. The markdown file is the README.md of a github repo.
+        2. Please extract the link of the most representative image in the markdown content based on your inference.
+        3. If the image is not with an absolute path, please construct the absolute path of the image with the rule:
+        https://github.com[repo_name]/blob/[branch_name]/[relative_path].
+        4. If the image url is from the branch main, use the branch_name = "main" in the returned image url. Otherwise use the branch_name = "master".
+        5. Please STRICTLY RETURN a JSON where THERE IS A KEY "image_url" with the link of the image, e.g.
+        {{
+            "image_url": "https://github.com/openai/openai-gpt/blob/main/image.png"
+        }}
+        """,
+        content=content,
+        max_tokens=1000,
+    )
+    image_url_json_str = response.choices[0].message.content
+    return image_url_json_str
