@@ -399,5 +399,5 @@ def extract_representative_image(
         content=content,
         max_tokens=1000,
     )
-    image_url_json_str = response.choices[0].message.content[:2000]
+    image_url_json_str = response.choices[0].message.content
     return image_url_json_str
