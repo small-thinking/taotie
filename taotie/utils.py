@@ -1,11 +1,9 @@
 import asyncio
-import base64
 import inspect
 import json
 import logging
 import os
 import random
-import re
 import ssl
 import sys
 import tempfile
