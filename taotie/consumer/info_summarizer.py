@@ -72,69 +72,65 @@ class InfoSummarizer(Consumer):
         self.buffer.extend(map(lambda m: json.dumps(m, ensure_ascii=False), messages))
         concatenated_messages = "\n".join(self.buffer)
         self.logger.info(f"Summarizer received information: {concatenated_messages}\n")
-        result_json_str = await self.gpt_summary(concatenated_messages)
+        summary_json_str = await self.gpt_summary(concatenated_messages)
         # Ask LLM to fix the potentially malformed json string.
         response = chat_completion(
             model_type=self.model_type,
             prompt="""
             You are a json fixer that can fix various types of malformed json strings.
             Please fix the following json string and return the fixed string in a way that is DIRECTLY PARSABLE by json.loads().
+            Please ONLY return the JSON after fixing.
             """,
             content=f"""
-            {result_json_str}
+            {summary_json_str}
             """,
             max_tokens=self.max_tokens,
         )
-        result_json_str = response.choices[0].message.content
+        fixed_summary_json_str = response.choices[0].message.content
         self.logger.info(
-            f"""JSON summary result:
-            {result_json_str}
+            f"""JSON summary result after fixing:
+            {fixed_summary_json_str}
             """
         )
-        representative_image_url = ""
+        # Extract the representative image from the repo README.md.
+        representative_image_url_str = ""
         if info_type == "github-repo":
             readme_url = f"https://raw.githubusercontent.com{id}/main/README.md"
             if not check_url_exists(readme_url):
                 readme_url = f"https://raw.githubusercontent.com{id}/master/README.md"
             # Extract the representative image from the repo.
-            representative_image_json = extract_representative_image(
+            representative_image_url_str = await extract_representative_image(
                 repo_name=id, readme_url=readme_url, logger=self.logger
             )
-            try:
-                image_json_obj = json.loads(representative_image_json)
-                representative_image_url = image_json_obj.get("image_url", "")
-                self.logger.info(
-                    f"Extracted representative image {representative_image_url} from {id}."
-                )
-            except Exception as e:
-                self.logger.error(
-                    f"Failed to extract representative image from {id}. The image json string: {representative_image_json}"
-                )
         # Generate the knowledge graph image url.
-        knowledge_graph_image_url = await self.knowledge_graph_summary(
-            result_json_str, messages[0]
+        knowledge_graph_image_url_str = await self.knowledge_graph_summary(
+            concatenated_messages, messages[0]
         )
-        self.logger.info(f"Knowledge graph image url: {knowledge_graph_image_url}")
+        self.logger.info(f"Knowledge graph image url: {knowledge_graph_image_url_str}")
         # Save to storage.
         if self.storage:
             # Parse the output as json.
             try:
-                processed_data = parse_json(result_json_str)
+                processed_data = parse_json(fixed_summary_json_str)
             except json.JSONDecodeError as e:
                 self.logger.error(
-                    f"Failed to parse the output as json (1st attempt). Error: {str(e)}, the json string is {result_json_str}"
+                    f"Failed to parse the output as json. Error: {str(e)}, the json string is [[{fixed_summary_json_str}]]"
                 )
+                self.buffer.clear()
+                return
             try:
                 # TODO: This is a hack. We should have a better way to do this.
                 list_of_tuples = [(raw, processed_data) for raw in messages]
                 await self.storage.save(
                     list_of_tuples,
-                    image_urls=[representative_image_url, knowledge_graph_image_url],
+                    image_urls=[
+                        representative_image_url_str,
+                        knowledge_graph_image_url_str,
+                    ],
                 )
                 self.logger.info(f"Saved to storage.")
             except Exception as e:
                 self.logger.error(f"Failed to save to storage. Error: {str(e)}")
-                self.buffer.clear()
             finally:
                 self.buffer.clear()
 
