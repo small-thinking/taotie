@@ -151,6 +151,7 @@ class NotionStorage(Storage):
         if image_urls:
             for image_url in image_urls:
                 if image_url:
+                    self.logger.error(f"Add image url: {image_url}")
                     page_contents.append(
                         {
                             "object": "block",

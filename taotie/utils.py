@@ -4,9 +4,9 @@ import json
 import logging
 import os
 import random
-import re
 import ssl
 import sys
+import tempfile
 import threading
 from asyncio import Lock
 from datetime import datetime
@@ -164,7 +164,8 @@ async def text_to_triplets(
 ) -> List[str]:
     """Leverage prompt to use LLM to convert text summary to RDF triplets."""
     metadata_str = "\n".join(f"{key}: {value}" for key, value in metadata.items())
-    metadata_str = metadata_str[:2000]
+    metadata_str = metadata_str[:500]
+    text_summary = text_summary[:1500]
     content = f"""
     {text_summary}
     {metadata_str}
@@ -329,6 +330,88 @@ async def async_construct_knowledge_graph(triplets, logger: Optional[Logger] = N
     return knowledge_graph_image_path
 
 
+def check_url_exists(url):
+    try:
+        response = requests.head(url)
+        return response.status_code == 200
+    except requests.exceptions.RequestException:
+        return False
+
+
+async def extract_representative_image(
+    repo_name: str, readme_url: str, logger: Logger
+) -> str:
+    # 1. Fetch the README.md content.
+    try:
+        readme_response = requests.get(readme_url)
+        readme_response.raise_for_status()  # Raise an exception if the request was not successful
+        content = readme_response.text[:2000]
+    except requests.exceptions.RequestException as e:
+        print(f"Error retrieving content from URL: {e}")
+    # 2. Extract representative image.
+    load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    content = f"""
+        ```
+        repo_name: {repo_name}
+        {content}
+        ```
+        """
+    logger.info(f"Extracting representative image from {repo_name}.")
+    response = chat_completion(
+        "gpt-3.5-turbo",
+        prompt=f"""
+        You are an information extractor that is going to extract the representative images according
+        to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:
+
+        1. Please extract the link of the most representative image in the markdown content based on your inference.
+
+        2. If the image path is already a full URL (e.g. starts with http:// or https://), use the URL as is.
+
+        3. If the image path is a relative path, please construct the absolute path of the image with the rule:
+        https://github.com[repo_name]/blob/[branch_name]/[relative_path].
+
+        4. Please ONLY RETURN a JSON where THERE IS A KEY "image_url" with the link of the image, e.g.
+        {{
+            "image_url": "https://github.com/openai/openai-gpt/blob/main/image.png"
+        }}
+
+        6. Please DO NOT RETURN any other words OTHER THAN THE JSON ITSELF.
+        """,
+        content=content,
+        max_tokens=1000,
+    )
+    image_url_json_str = response.choices[0].message.content
+    # 3. Parse to get the url string.
+    try:
+        image_json_obj = json.loads(image_url_json_str)
+        representative_image_url = image_json_obj.get("image_url", "")
+        logger.info(f"Extracted representative image URL: {representative_image_url}.")
+    except Exception as e:
+        logger.error(
+            f"Failed to extract representative image from {repo_name}. The image json string: [[{image_url_json_str}]]"
+        )
+        return ""
+    try:
+        valid = check_url_exists(representative_image_url)
+        if not valid:
+            logger.warning(
+                f"No valid URL extracted as the representative image url for the repo {repo_name}."
+            )
+            return ""
+        logger.info(
+            f"Successfully extracted representative image {representative_image_url} from {repo_name}."
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to extract representative image from {repo_name}. The extracted URL is {representative_image_url}."
+        )
+        return ""
+    # 4. Downlaod and then upload to imgur.
+    return await save_image_to_imgur(representative_image_url)
+
+
+@retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
 async def upload_image_to_imgur(image_path):
     client_id = os.getenv("IMGUR_CLIENT_ID")
     if not client_id:
@@ -353,51 +436,18 @@ async def upload_image_to_imgur(image_path):
     return data["data"]["link"]
 
 
-def check_url_exists(url):
-    try:
-        response = requests.head(url)
-        return response.status_code == 200
-    except requests.exceptions.RequestException:
-        return False
-
-
-def extract_representative_image(
-    repo_name: str, readme_url: str, logger: Logger
-) -> str:
-    try:
-        readme_response = requests.get(readme_url)
-        readme_response.raise_for_status()  # Raise an exception if the request was not successful
-        content = readme_response.text[:2000]
-    except requests.exceptions.RequestException as e:
-        print(f"Error retrieving content from URL: {e}")
-    # Extract representative image.
-    load_dotenv()
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    content = f"""
-        ```
-        repo_name: {repo_name}
-        {content}
-        ```
-        """
-    logger.info(f"Extracting representative image from {repo_name}")
-    logger.info(f"Content: {content}")
-    response = chat_completion(
-        "gpt-3.5-turbo",
-        prompt=f"""
-        You are an information extractor that is going to extract the representative images according
-        to the content of the markdown file. Here is the context and requirements:
-        1. The markdown file is the README.md of a github repo.
-        2. Please extract the link of the most representative image in the markdown content based on your inference.
-        3. If the image is not with an absolute path, please construct the absolute path of the image with the rule:
-        https://github.com[repo_name]/blob/[branch_name]/[relative_path].
-        4. If the image url is from the branch main, use the branch_name = "main" in the returned image url. Otherwise use the branch_name = "master".
-        5. Please STRICTLY RETURN a JSON where THERE IS A KEY "image_url" with the link of the image, e.g.
-        {{
-            "image_url": "https://github.com/openai/openai-gpt/blob/main/image.png"
-        }}
-        """,
-        content=content,
-        max_tokens=1000,
-    )
-    image_url_json_str = response.choices[0].message.content
-    return image_url_json_str
+# @retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
+async def save_image_to_imgur(image_url: str):
+    # Get the image data
+    if image_url.startswith("https://github.com/"):
+        image_url = image_url.replace("blob", "raw")
+    response = requests.get(image_url)
+    response.raise_for_status()
+    # Create a temporary file and save the image data
+    with tempfile.NamedTemporaryFile(delete=False) as temp:
+        temp.write(response.content)
+        temp_file_path = temp.name
+    print(f"Download file to {temp_file_path}.")
+    imgur_url = await upload_image_to_imgur(temp_file_path)
+    os.remove(temp_file_path)
+    return imgur_url
