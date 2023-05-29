@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import asyncio
 import inspect
 import json
@@ -13,6 +14,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import aiohttp
+import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -270,19 +272,23 @@ def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
     graph = nx.DiGraph()
     for subj, pred, obj in knowledge_graph:
         graph.add_edge(str(subj), str(obj), label=str(pred.split("/")[-1]))
-    # Draw the Networkx Graph
+
+    # Configure the font
+    plt.rcParams["font.family"] = "STKaiti"
+    plt.rcParams[
+        "axes.unicode_minus"
+    ] = False  # to solve the problem of minus sign '-' shows as a square
+
     pos = nx.spring_layout(graph, k=100)
     node_labels = {n: n for n in graph.nodes}
     edge_labels = {(u, v): d["label"] for u, v, d in graph.edges(data=True)}
     font_size = 8
-    font_family = "Source Han Sans" if platform == "mac" else "Noto Sans CJK SC"
-
+    # Draw the Networkx Graph
     nx.draw_networkx_edge_labels(
         graph,
         pos,
         edge_labels=edge_labels,
         font_size=font_size,
-        font_family=font_family,
     )
     nx.draw_networkx_labels(
         graph,
@@ -298,7 +304,6 @@ def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
         pos,
         with_labels=False,
         font_size=font_size,
-        font_family=font_family,
         node_color="none",
         node_shape="s",
     )
