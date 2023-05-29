@@ -73,23 +73,27 @@ class InfoSummarizer(Consumer):
         concatenated_messages = "\n".join(self.buffer)
         self.logger.info(f"Summarizer received information: {concatenated_messages}\n")
         summary_json_str = await self.gpt_summary(concatenated_messages)
-        # Ask LLM to fix the potentially malformed json string.
-        response = chat_completion(
-            model_type=self.model_type,
-            prompt="""
-            You are a json fixer that can fix various types of malformed json strings.
-            Please fix the following json string and return the fixed string in a way that is DIRECTLY PARSABLE by json.loads().
-            Please ONLY return the JSON after fixing.
-            """,
-            content=f"""
-            {summary_json_str}
-            """,
-            max_tokens=self.max_tokens,
-        )
-        fixed_summary_json_str = response.choices[0].message.content
+        try:
+            parse_json(summary_json_str)
+        except Exception as e:
+            # Ask LLM to fix the potentially malformed json string.
+            self.logger.warning(f"Generated summary is not in JSON, fixing...")
+            response = chat_completion(
+                model_type=self.model_type,
+                prompt="""
+                You are a json fixer that can fix various types of malformed json strings.
+                Please directly return the JSON as is if it is already in a valid format.
+                IF not, please fix the following json string and return the fixed string in a way that is DIRECTLY PARSABLE by json.loads().
+                """,
+                content=f"""
+                {summary_json_str}
+                """,
+                max_tokens=self.max_tokens,
+            )
+            summary_json_str = response.choices[0].message.content
         self.logger.info(
             f"""JSON summary result after fixing:
-            {fixed_summary_json_str}
+            {summary_json_str}
             """
         )
         # Extract the representative image from the repo README.md.
@@ -111,10 +115,10 @@ class InfoSummarizer(Consumer):
         if self.storage:
             # Parse the output as json.
             try:
-                processed_data = parse_json(fixed_summary_json_str)
+                processed_data = parse_json(summary_json_str)
             except json.JSONDecodeError as e:
                 self.logger.error(
-                    f"Failed to parse the output as json. Error: {str(e)}, the json string is [[{fixed_summary_json_str}]]"
+                    f"Failed to parse the output as json. Error: {str(e)}, the json string is [[{summary_json_str}]]"
                 )
                 self.buffer.clear()
                 return

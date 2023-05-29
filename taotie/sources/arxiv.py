@@ -77,7 +77,7 @@ class Arxiv(BaseSource):
                         await self._send_data(paper_info)
                         if self.verbose:
                             self.logger.info(f"{title}: {paper_info.encode()}")
-                        await asyncio.sleep(10)
+                        await asyncio.sleep(20)
                 self.logger.info(
                     f"ArxivSource checked. Will check again in {self.check_interval} seconds."
                 )

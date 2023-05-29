@@ -263,7 +263,7 @@ def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
             )
             knowledge_graph.add((n[subj], n[pred], n[obj]))
         except Exception:
-            logger.warning(f"Failed to parse triplet: {t}")
+            logger.warning(f"Failed to parse triplet: {t}, skip this one.")
             continue
 
     # Create a Networkx Graph and visualize it
@@ -342,12 +342,16 @@ async def extract_representative_image(
     repo_name: str, readme_url: str, logger: Logger
 ) -> str:
     # 1. Fetch the README.md content.
+    content = ""
     try:
         readme_response = requests.get(readme_url)
         readme_response.raise_for_status()  # Raise an exception if the request was not successful
         content = readme_response.text[:2000]
     except requests.exceptions.RequestException as e:
         print(f"Error retrieving content from URL: {e}")
+    if not content:
+        logger.warning(f"No README.md found via the path {readme_url}.")
+        return ""
     # 2. Extract representative image.
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
