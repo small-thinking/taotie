@@ -14,7 +14,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import aiohttp
-import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
