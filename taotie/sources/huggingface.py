@@ -31,7 +31,7 @@ class HuggingFaceLeaderboard(BaseSource):
             with ThreadPoolExecutor() as executor:
                 # Setup the webdriver
                 service = Service(ChromeDriverManager().install())
-                driver = webdriver.Chrome(service=service)
+                driver = webdriver.Chrome(service=service, options=self.options)
 
                 # Navigate to the page
                 driver.get(self.url)
@@ -48,7 +48,6 @@ class HuggingFaceLeaderboard(BaseSource):
                 # Use BeautifulSoup to parse the iframe content
                 soup = BeautifulSoup(iframe_content, "html.parser")
                 model_rows = soup.find_all("tr", {"class": "svelte-8hrj8a"})
-                print(len(model_rows))
 
                 for idx, row in enumerate(model_rows):
                     if idx > 10:
@@ -65,8 +64,6 @@ class HuggingFaceLeaderboard(BaseSource):
                     model_url = model_cell.find("a")["href"]
                     if not model_name or not model_url:
                         continue
-                    # Check duplication and skip.
-
                     # Fetch the content via the url, using the huggingface_hub API.
                     model_readme_url = (
                         f"https://huggingface.co/{model_name}/raw/main/README.md"
@@ -98,10 +95,10 @@ class HuggingFaceLeaderboard(BaseSource):
                 await asyncio.sleep(self.check_interval)
 
 
-# async def run():
-#     source = HuggingFaceLeaderboard(None, True)
-#     await source.run()
+async def run():
+    source = HuggingFaceLeaderboard(None, True)
+    await source.run()
 
 
-# if __name__ == "__main__":
-#     asyncio.run(run())
+if __name__ == "__main__":
+    asyncio.run(run())
