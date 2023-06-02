@@ -45,21 +45,59 @@ class NotionReporter(BaseReporter):
         self.model_type = kwargs.get("model_type", "gpt-3.5-turbo")
         # Prompt.
         language = kwargs.get("language", "Chinese")
-        self.report_prompt = f"""
-        Please generate a report that will be published by the Wechat blog based on the json string in the triple quotes.
-        Please follow the following rules STRICTLY:
-        1. Please summarize in {language}.
-        2. Please skip the items that are not relevant to AI or the topics of {self.topic_filters}.
-        3. Please given a short overall summary of the article that is about a report of the advances of AI.
-        4. Please generate each item as an individual section, include the URL in each of the item, and \
-            including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
-            Please make the summary as informative as possible.
-        5. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
-        6. Please generate the description in an attractive way, so that the readers will be willing to check the content.
-        7. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
-        8. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作.
+        if "github-repo" in self.topic_filters:
+            self.report_prompt = f"""
+            Please generate a report that will be published by the Wechat blog based on the json string in the triple quotes.
+            Please follow the following rules STRICTLY:
+            1. Please summarize in {language}.
+            2. Please skip the items that are not relevant to AI or the topics of {self.topic_filters}.
+            3. Please given a short overall summary of the article that is about a report of the advances of AI.
+            4. Please generate each item as an individual section, include the URL in each of the item, and \
+                including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
+                Please make the summary as informative as possible.
+            5. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
+            6. Please generate the description in an attractive way, so that the readers will be willing to check the content.
+            7. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
+            8. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
 
-        """
+            Example items:
+            1.【★★★★★】TransformerOptimus/SuperAGI
+            这是一个用于构建和运行有用的自主智能体的Python项目。
+            推荐理由：自主性AI最新版本。
+            访问地址：https://github.com/TransformerOptimus/SuperAGI
+
+            2.【【★★★★】LLM-ToolMaker
+            这个项目提出了一种名为LLMs As Tool Makers (LATM)的闭环框架，其中大型语言模型(LLMs)可以作为工具制造者为解决问题创造自己的可重用工具。
+            推荐理由：开放框架 。
+            访问地址：https://github.com/ctlllll/LLM-ToolMaker
+
+            """
+        else:
+            self.report_prompt = f"""
+            Please generate a report of the paper summary that will be published by the Wechat blog based on the json string in the triple quotes.
+            Please follow the following rules STRICTLY:
+            1. Please summarize in {language}.
+            2. Please SKIP the items that are not relevant to AI or the topics of {self.topic_filters}.
+            3. Please use the paper name as the title for each item. Then followed by a short overall summary of the paper.
+            4. Please emphasis the authors or afflications if they famous.
+            5. Please generate each item as an individual section, include the URL in each of the item, and \
+                including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
+                Please make the summary as informative as possible.
+            6. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
+            7. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
+
+            Example items:
+            1.【★★★★★】Training Language Models with Language Feedback at Scale
+            本文介绍了一种新的语言反馈模型训练方法ILF，利用更具信息量的语言反馈来解决预训练语言模型生成的文本与人类偏好不一致的问题。
+            推荐理由：创新的训练方法。
+            访问地址：http://arxiv.org/abs/2303.16755v2
+
+            2.【★★★★】Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting
+            本文研究了大型语言模型（LLMs）在链式思考推理（CoT）中的解释不忠实问题，揭示了CoT解释可能受到多种因素的影响。
+            推荐理由：深入研究LLMs的行为。
+            访问地址：http://arxiv.org/abs/2305.04388v1
+
+            """
 
     async def _connect(self):
         self.notion = AsyncClient(auth=self.token)
@@ -157,7 +195,7 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 3600 if self.model_type == "gpt-3.5-turbo" else 7600
+        truncate_size = 3600 if self.model_type == "gpt-3.5-turbo" else 7500
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
