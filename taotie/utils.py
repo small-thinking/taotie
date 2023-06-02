@@ -14,7 +14,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import aiohttp
-import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -417,7 +416,7 @@ async def extract_representative_image(
         )
         return ""
     # 4. Downlaod and then upload to imgur.
-    return await save_image_to_imgur(representative_image_url)
+    return await save_image_to_imgur(representative_image_url, logger)
 
 
 @retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
@@ -446,7 +445,7 @@ async def upload_image_to_imgur(image_path):
 
 
 # @retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
-async def save_image_to_imgur(image_url: str):
+async def save_image_to_imgur(image_url: str, logger: Logger):
     # Get the image data
     if image_url.startswith("https://github.com/"):
         image_url = image_url.replace("blob", "raw")
@@ -456,7 +455,15 @@ async def save_image_to_imgur(image_url: str):
     with tempfile.NamedTemporaryFile(delete=False) as temp:
         temp.write(response.content)
         temp_file_path = temp.name
-    print(f"Download file to {temp_file_path}.")
-    imgur_url = await upload_image_to_imgur(temp_file_path)
+    logger.info(f"Download file to {temp_file_path}.")
+    try:
+        imgur_url = await upload_image_to_imgur(temp_file_path)
+    except Exception as e:
+        retest_interval = 600
+        logger.warning(
+            f"Failed to upload image to imgur: {e}, retest in {retest_interval} seconds."
+        )
+        await asyncio.sleep(retest_interval)
+        imgur_url = await upload_image_to_imgur(temp_file_path)
     os.remove(temp_file_path)
     return imgur_url

@@ -1,7 +1,7 @@
 FROM python:3.10-bullseye
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --allow-releaseinfo-change && apt-get install -y \
         build-essential \
         cargo \
         coreutils \
@@ -25,7 +25,9 @@ RUN apt-get update && apt-get install -y \
         tcl-dev \
         tk-dev \
         fonts-noto-cjk \
-        zlib1g-dev
+        zlib1g-dev \
+        wget \
+        unzip
 
 ENV PATH="${PATH}:/usr/local/bin"
 ENV IS_DOCKER=true
@@ -38,11 +40,12 @@ COPY . .
 # Expose port 6543
 EXPOSE 6543
 
-# Upgrade pip and install Poetry and install project dependencies using Poetry
-RUN pip install --upgrade pip && pip install poetry==1.4.1 -U \
-        && poetry export --without-hashes -f requirements.txt > requirements.txt \
-        && pip3 install -r requirements.txt -U \
-        && pip3 install cryptography -U && pip3 install -e .
-
+# Upgrade pip, install Poetry, and install project dependencies using Poetry
+RUN pip install --upgrade pip \
+    && pip install poetry==1.4.1 \
+    && poetry export --without-hashes -f requirements.txt > requirements.txt \
+    && pip3 install -r requirements.txt \
+    && pip3 install cryptography \
+    && pip3 install -e .
 # Start the application
 CMD ["python", "examples/summarize_to_notion/example.py"]
