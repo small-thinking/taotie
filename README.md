@@ -93,7 +93,7 @@ Click the entry can show the details, including the knowledge graph summarized f
 ## Tools
 1. Tools to generate the report based on the gathered data in notion database.
 ```
-python taotie/tools.py report --date-lookback 3 --type-filter arxiv
+python taotie/tools.py report --date-lookback 2 --type-filter github-repo
 ```
 
 <p align="center">

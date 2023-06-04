@@ -185,7 +185,9 @@ class InfoSummarizer(Consumer):
             return ""
 
         try:
-            image_url = await upload_image_to_imgur(knowledge_graph_image_path)
+            image_url = await upload_image_to_imgur(
+                knowledge_graph_image_path, self.logger
+            )
             return image_url
         except Exception as e:
             self.logger.error(f"Error uploading knowledge graph image to Imgur: {e}")

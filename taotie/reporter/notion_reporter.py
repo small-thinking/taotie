@@ -47,18 +47,17 @@ class NotionReporter(BaseReporter):
         language = kwargs.get("language", "Chinese")
         if "github-repo" in self.topic_filters:
             self.report_prompt = f"""
-            Please generate a report that will be published by the Wechat blog based on the json string in the triple quotes.
+            Please generate a report that will be published by the WECHAT BLOG based on the json string in the triple quotes.
             Please follow the following rules STRICTLY:
-            1. Please summarize in {language}.
+            1. Please summarize in {language} and give a short overall summary of the repos in this report.
             2. Please skip the items that are not relevant to AI or the topics of {self.topic_filters}.
-            3. Please given a short overall summary of the article that is about a report of the advances of AI.
-            4. Please generate each item as an individual section, include the URL in each of the item, and \
+            3. Please generate each item as an individual section, include the URL in each of the item, and \
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
                 Please make the summary as informative as possible.
-            5. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
-            6. Please generate the description in an attractive way, so that the readers will be willing to check the content.
-            7. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
-            8. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
+            4. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
+            5. Please generate the description in an attractive way, so that the readers will be willing to check the content.
+            6. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
+            7. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
 
             Example items:
             1.【★★★★★】TransformerOptimus/SuperAGI
@@ -74,9 +73,9 @@ class NotionReporter(BaseReporter):
             """
         else:
             self.report_prompt = f"""
-            Please generate a report of the paper summary that will be published by the Wechat blog based on the json string in the triple quotes.
+            Please generate a report of the paper summary that will be published by the WECHAT BLOG based on the json string in the triple quotes.
             Please follow the following rules STRICTLY:
-            1. Please summarize in {language}.
+            1. Please summarize in {language} and give a short overall summary of the papers in this report.
             2. Please SKIP the items that are not relevant to AI or the topics of {self.topic_filters}.
             3. Please use the paper name as the title for each item. Then followed by a short overall summary of the paper.
             4. Please emphasis the authors or afflications if they famous.
@@ -195,12 +194,12 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 3600 if self.model_type == "gpt-3.5-turbo" else 7500
+        truncate_size = 3600 if self.model_type == "gpt-3.5-turbo" else 7000
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
         prompt_tokens = len(content_prompt)
-        max_tokens = int(truncate_size - min(truncate_size, prompt_tokens) * 0.5)
+        max_tokens = int(truncate_size - min(truncate_size, prompt_tokens) * 0.45)
         self.logger.output(
             f"Prompt tokens: {prompt_tokens}, response tokens: {max_tokens}"
         )
