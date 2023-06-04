@@ -61,8 +61,8 @@ def create_notion_summarizer():
     # orchestrator.add_source(twitter_source)
 
     # Github source.
-    # github_source = GithubTrends(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
-    # orchestrator.add_source(github_source)
+    github_source = GithubTrends(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
+    orchestrator.add_source(github_source)
 
     # Arxiv source.
     arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
