@@ -15,7 +15,6 @@ from taotie.utils import *
 def test_get_datetime(input, expected):
     assert get_datetime(input) == expected
 
-
 @pytest.mark.parametrize(
     "url, response_text, status_code, expected_output, expected_exception",
     [
