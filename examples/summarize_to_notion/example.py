@@ -10,7 +10,6 @@ from taotie.orchestrator import Orchestrator
 from taotie.sources.arxiv import Arxiv
 from taotie.sources.github import GithubTrends
 from taotie.sources.http_service import HttpService
-from taotie.sources.huggingface import HuggingFaceLeaderboard
 from taotie.sources.twitter import TwitterSubscriber
 from taotie.storage.memory import DedupMemory
 from taotie.storage.notion import NotionStorage
@@ -31,7 +30,6 @@ def create_notion_summarizer():
         root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
     )
     dedup_memory = DedupMemory(redis_url=redis_url)
-    # dedup_memory = None
     consumer = InfoSummarizer(
         buffer_size=1000,
         summarize_instruction=instruction,
@@ -51,26 +49,24 @@ def create_notion_summarizer():
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
 
-    # Twitter source.
-    # rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
-    # twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
-    # orchestrator.add_source(twitter_source)
-    # Http service source.
+    # # Http service source.
     http_service_source = HttpService(
         sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
     )
     orchestrator.add_source(http_service_source)
+
+    # Twitter source.
+    # rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
+    # twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
+    # orchestrator.add_source(twitter_source)
+
     # Github source.
     github_source = GithubTrends(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
     orchestrator.add_source(github_source)
-    # arxiv source.
+
+    # Arxiv source.
     arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
     orchestrator.add_source(arxiv_source)
-    # Huggingface leaderboard.
-    # huggingface_leaderboard = HuggingFaceLeaderboard(
-    #     sink=mq, verbose=verbose, dedup_memory=dedup_memory
-    # )
-    # orchestrator.add_source(huggingface_leaderboard)
     asyncio.run(orchestrator.run())
 
 

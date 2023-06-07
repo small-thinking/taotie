@@ -420,7 +420,7 @@ async def extract_representative_image(
 
 
 @retrying.retry(wait_fixed=10000, stop_max_attempt_number=3)
-async def upload_image_to_imgur(image_path):
+async def upload_image_to_imgur(image_path: str, logger: Logger) -> str:
     client_id = os.getenv("IMGUR_CLIENT_ID")
     if not client_id:
         raise ValueError("IMGUR_CLIENT_ID is not set")
@@ -435,11 +435,19 @@ async def upload_image_to_imgur(image_path):
     ssl_context.verify_mode = ssl.CERT_NONE
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(
-            url, headers=headers, data={"image": image_data}, ssl=ssl_context
-        ) as response:
-            response.raise_for_status()
-            data = await response.json()
+        try:
+            async with session.post(
+                url, headers=headers, data={"image": image_data}, ssl=ssl_context
+            ) as response:
+                response.raise_for_status()
+                data = await response.json()
+        except Exception as e:
+            retest_interval = 600
+            logger.warning(
+                f"Failed to upload image to imgur: {e}, retest in {retest_interval} seconds."
+            )
+            await asyncio.sleep(retest_interval)
+            return ""
 
     return data["data"]["link"]
 
@@ -456,14 +464,6 @@ async def save_image_to_imgur(image_url: str, logger: Logger):
         temp.write(response.content)
         temp_file_path = temp.name
     logger.info(f"Download file to {temp_file_path}.")
-    try:
-        imgur_url = await upload_image_to_imgur(temp_file_path)
-    except Exception as e:
-        retest_interval = 600
-        logger.warning(
-            f"Failed to upload image to imgur: {e}, retest in {retest_interval} seconds."
-        )
-        await asyncio.sleep(retest_interval)
-        imgur_url = await upload_image_to_imgur(temp_file_path)
+    imgur_url = await upload_image_to_imgur(temp_file_path, logger)
     os.remove(temp_file_path)
     return imgur_url
