@@ -15,6 +15,14 @@ from taotie.utils import *
 def test_get_datetime(input, expected):
     assert get_datetime(input) == expected
 
+def test_load_dotenv():
+    with patch.dict('os.environ', {'TEST_KEY': 'test value'}):
+        load_dotenv()
+        assert os.environ.get('TEST_KEY') == 'test value'
+
+def test_logger():
+    logger = Logger('test_logger')
+    assert logger.logger.name == 'test_logger'
 
 @pytest.mark.parametrize(
     "url, response_text, status_code, expected_output, expected_exception",
