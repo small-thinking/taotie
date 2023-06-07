@@ -49,7 +49,7 @@ def create_notion_summarizer():
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
 
-    # # Http service source.
+    # Http service source.
     http_service_source = HttpService(
         sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
     )
@@ -67,6 +67,7 @@ def create_notion_summarizer():
     # Arxiv source.
     arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
     orchestrator.add_source(arxiv_source)
+
     asyncio.run(orchestrator.run())
 
 
