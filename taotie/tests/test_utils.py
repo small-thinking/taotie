@@ -3,7 +3,8 @@ Run this test with command: pytest taotie/tests/test_utils.py
 """
 from unittest.mock import patch
 
-import pytest
+import pytest   
+import logging
 
 from taotie.utils import *
 
@@ -23,7 +24,15 @@ def test_load_env_file_not_found():
     with patch("builtins.open") as mock_open:
         mock_open.side_effect = FileNotFoundError
         with pytest.raises(ValueError):
-            load_env()
+            load_env()  
+
+def test_logger_verbose_true():
+    logger = Logger(verbose=True)
+    assert logger.level == logging.DEBUG
+
+def test_logger_verbose_false():
+    logger = Logger(verbose=False)
+    assert logger.level == logging.INFO
 
 @pytest.mark.parametrize(
     "url, response_text, status_code, expected_output, expected_exception",
