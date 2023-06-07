@@ -19,6 +19,12 @@ def test_get_datetime_invalid_input():
     with pytest.raises(ValueError):
         get_datetime("invalid input")
 
+def test_load_env_file_not_found():
+    with patch("builtins.open") as mock_open:
+        mock_open.side_effect = FileNotFoundError
+        with pytest.raises(ValueError):
+            load_env()
+
 @pytest.mark.parametrize(
     "url, response_text, status_code, expected_output, expected_exception",
     [
