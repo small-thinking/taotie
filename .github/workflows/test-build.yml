@@ -22,7 +22,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+          poetry config virtualenvs.create false
+      - name: Cache Poetry
+        uses: actions/cache@v2
+        with:
+          path: ~/.poetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -31,7 +41,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "Current directory $PWD"; curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
           poetry install ; pip install -e .
           python3 -m pip install types-pytz
           python3 -m pip install types-requests
