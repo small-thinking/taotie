@@ -15,6 +15,9 @@ from taotie.utils import *
 def test_get_datetime(input, expected):
     assert get_datetime(input) == expected
 
+def test_get_datetime_invalid_input():
+    with pytest.raises(ValueError):
+        get_datetime("invalid input")
 
 @pytest.mark.parametrize(
     "url, response_text, status_code, expected_output, expected_exception",
