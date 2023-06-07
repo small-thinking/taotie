@@ -31,12 +31,12 @@ Create a .env file and add the necessary API tokens:
 ```bash
 OPENAI_API_KEY=<your OpenAI API key>
 # Please follow https://developers.notion.com/docs/create-a-notion-integration.
-NOTION_TOKEN=<your Notion API token>  
+NOTION_TOKEN=<your Notion API token>   
 # The id of the page where you want to dump the summary.
 NOTION_ROOT_PAGE_ID=<the ID of the page where you want to store the summaries>
 
 # (Optional) Please follow https://developer.twitter.com/en/portal.
-TWITTER_BEARER_TOKEN=<your Twitter bearer token>  
+TWITTER_BEARER_TOKEN=<your Twitter bearer token>   
 
 # (Optional) The list of authors whose papers you care about.
 ARXIV_AUTHORS=Yann LeCun,Kaiming He,Ross Girshick,Piotr Dollár,Alec Radford,Ilya Sutskever,Dario Amodei,Geoffrey E. Hinton
