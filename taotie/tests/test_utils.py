@@ -1,7 +1,6 @@
-"""Test the utils.
-Run this test with command: pytest taotie/tests/test_utils.py
-"""
-from unittest.mock import patch
+"""Test the utils.  
+Run this test with command: pytest taotie/tests/test_utils.py"""
+from unittest.mock import patch  
 
 import pytest
 
