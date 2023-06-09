@@ -30,7 +30,11 @@ class Arxiv(BaseSource):
 
     async def _cleanup(self):
         pass
+
     async def run(self):
+        with open('arxiv_author.json') as f:
+            author_dict = json.load(f)
+        self.authors = author_dict
         async with aiohttp.ClientSession() as session:
             while True:
                 for idx, author in enumerate(self.authors):
