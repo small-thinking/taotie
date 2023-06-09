@@ -20,14 +20,17 @@ class Arxiv(BaseSource):
 
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
-        self.authors = os.environ.get("ARXIV_AUTHORS", "").split(",")
+        self.authors = load_arxiv_author_config("arxiv_author.json")
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
         self.check_interval = kwargs.get("check_interval", 3600 * 12)
         self.logger.info(f"Arxiv data source initialized.")
+    def load_arxiv_author_config(self, config_path):
+        with open(config_path) as f:
+            config = json.load(f)
+        return config
 
     async def _cleanup(self):
         pass
-
     async def run(self):
         async with aiohttp.ClientSession() as session:
             while True:
