@@ -21,7 +21,7 @@ class Arxiv(BaseSource):
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         with open('arxiv_author.json') as f:
-            self.authors = json.load(f)
+            self.authors = [author for affiliation in json.load(f) for author in affiliation]
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
         self.check_interval = kwargs.get("check_interval", 3600 * 12)
         self.logger.info(f"Arxiv data source initialized.")
