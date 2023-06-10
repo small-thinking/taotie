@@ -11,6 +11,7 @@ from taotie.message_queue import MessageQueue, SimpleMessageQueue
 from taotie.sources.base import BaseSource
 from taotie.utils import get_datetime
 
+
 class Arxiv(BaseSource):
     """Listen to Arxiv papers.
 
@@ -20,20 +21,26 @@ class Arxiv(BaseSource):
 
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
-        with open('arxiv_author.json') as f:
-            author_dict = json.load(f)
+        self.arxiv_author_json_file = kwargs.get(
+            "arxiv_author_json", "arxiv_author.json"
+        )
         # Load authors as a dict of affiliation: [authors]
-        self.authors = {affiliation: authors for affiliation, authors in author_dict.items()}
+        self.logger.info(
+            f"Loading arxiv author data from [{self.arxiv_author_json_file}]"
+        )
+        with open(self.arxiv_author_json_file) as f:
+            author_dict = json.load(f)
+        self.authors = {
+            affiliation: authors for affiliation, authors in author_dict.items()
+        }
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
         self.check_interval = kwargs.get("check_interval", 3600 * 12)
         self.logger.info(f"Arxiv data source initialized.")
 
     async def _cleanup(self):
         pass
+
     async def run(self):
-        with open('arxiv_author.json') as f:
-            author_dict = json.load(f)
-        self.authors = {affiliation: authors for affiliation, authors in author_dict.items()}
         async with aiohttp.ClientSession() as session:
             while True:
                 for idx, author in enumerate(self.authors):
@@ -87,6 +94,7 @@ class Arxiv(BaseSource):
                     f"ArxivSource checked. Will check again in {self.check_interval} seconds."
                 )
                 await asyncio.sleep(self.check_interval)
+
 
 if __name__ == "__main__":
     message_queue = SimpleMessageQueue()
