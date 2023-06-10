@@ -60,34 +60,33 @@ A more user friendly tool is not yet available. But you can use the [Postman](ht
 
 ### Output
 
-<p align="center">
+"""<p align="center">
     <img src="./examples/summarize_to_notion/example.png" alt="drawing"/>
     <br>Output of the info summarizer example
-</p>
+</p>"""
 
 In your notion, you can see the contents added.
 
-<p align="center">
+"""<p align="center">
     <img src="./images/adhoc-saving.gif" alt="drawing"/>
     <br>Ad-hoc bookmarking
-</p>
+</p>"""
 
-<p align="center">
+"""<p align="center">
     <img src="./images/web-page.png" alt="drawing"/>
     <br>Summarized Web-page (Medium post)
-</p>
+</p>"""
 
-<p align="center">
+"""<p align="center">
     <img src="./images/github-trending-short.gif" alt="drawing"/>
     <br>Subscribed Github Trending
-</p>
+</p>"""
 
 Click the entry can show the details, including the knowledge graph summarized for this piece of information.
 <p align="center">
     <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
 </p>
-
 ## Tools
 1. Tools to generate the report based on the gathered data in notion database.
 ```
@@ -95,7 +94,7 @@ python taotie/tools.py report --date-lookback 2 --type-filter arxiv
 ```
 `python taotie/tools.py report --date-lookback 2 --type-filter github-repo`
 
-<p align="center">
+"""<p align="center">
     <img src="./images/example-report.png" alt="drawing"/>
     <br>Example Report
-</p>
+</p>"""
