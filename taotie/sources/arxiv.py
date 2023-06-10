@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from datetime import datetime, timedelta
 
@@ -20,7 +21,18 @@ class Arxiv(BaseSource):
 
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
-        self.authors = os.environ.get("ARXIV_AUTHORS", "").split(",")
+        self.arxiv_author_json_file = kwargs.get(
+            "arxiv_author_json", "arxiv_author.json"
+        )
+        # Load authors as a dict of affiliation: [authors]
+        self.logger.info(
+            f"Loading arxiv author data from [{self.arxiv_author_json_file}]"
+        )
+        with open(self.arxiv_author_json_file) as f:
+            author_dict = json.load(f)
+        self.authors = {
+            affiliation: authors for affiliation, authors in author_dict.items()
+        }
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
         self.check_interval = kwargs.get("check_interval", 3600 * 12)
         self.logger.info(f"Arxiv data source initialized.")
