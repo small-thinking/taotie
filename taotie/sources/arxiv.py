@@ -23,14 +23,14 @@ class Arxiv(BaseSource):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         with open('arxiv_author.json') as f:
             author_dict = json.load(f)
-        self.authors = author_dict
+        # Load authors as a dict of affiliation: [authors]
+        self.authors = {affiliation: authors for affiliation, authors in author_dict.items()}
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
         self.check_interval = kwargs.get("check_interval", 3600 * 12)
         self.logger.info(f"Arxiv data source initialized.")
 
     async def _cleanup(self):
         pass
-
     async def run(self):
         with open('arxiv_author.json') as f:
             author_dict = json.load(f)
