@@ -22,8 +22,8 @@ def parse_args(parser: argparse.ArgumentParser):
     report_parser.add_argument(
         "--type-filters",
         type=str,
-        default="github-repo",
-        help="Comma-separated list of type filters",
+        default="arxiv,github-repo",
+        help="Comma-separated list of type filters (arxiv, github-repo)",
     )
     report_parser.add_argument(
         "--topic-filters",
