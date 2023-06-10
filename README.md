@@ -95,6 +95,7 @@ Click the entry can show the details, including the knowledge graph summarized f
 ```
 python taotie/tools.py report --date-lookback 2 --type-filter arxiv
 ```
+`python taotie/tools.py report --date-lookback 2 --type-filter github-repo`
 
 <p align="center">
     <img src="./images/example-report.png" alt="drawing"/>
