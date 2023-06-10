@@ -1,7 +1,6 @@
-"""Test the utils.
-Run this test with command: pytest taotie/tests/test_utils.py
-"""
-from unittest.mock import patch
+"""Test the utils.  
+Run this test with command: pytest taotie/tests/test_utils.py"""
+from unittest.mock import patch  
 
 import pytest
 
@@ -14,6 +13,17 @@ from taotie.utils import *
 )
 def test_get_datetime(input, expected):
     assert get_datetime(input) == expected
+
+
+def test_load_dotenv():
+    with patch.dict("os.environ", {"TEST_KEY": "test value"}):
+        load_dotenv()
+        assert os.environ.get("TEST_KEY") == "test value"
+
+
+def test_logger():
+    logger = Logger("test_logger")
+    assert logger.logger.name == "test_logger"
 
 
 @pytest.mark.parametrize(
