@@ -11,7 +11,6 @@ from taotie.message_queue import MessageQueue, SimpleMessageQueue
 from taotie.sources.base import BaseSource
 from taotie.utils import get_datetime
 
-
 class Arxiv(BaseSource):
     """Listen to Arxiv papers.
 
@@ -34,7 +33,7 @@ class Arxiv(BaseSource):
     async def run(self):
         with open('arxiv_author.json') as f:
             author_dict = json.load(f)
-        self.authors = author_dict
+        self.authors = {affiliation: authors for affiliation, authors in author_dict.items()}
         async with aiohttp.ClientSession() as session:
             while True:
                 for idx, author in enumerate(self.authors):
@@ -88,7 +87,6 @@ class Arxiv(BaseSource):
                     f"ArxivSource checked. Will check again in {self.check_interval} seconds."
                 )
                 await asyncio.sleep(self.check_interval)
-
 
 if __name__ == "__main__":
     message_queue = SimpleMessageQueue()
