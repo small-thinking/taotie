@@ -35,10 +35,10 @@ class HttpService(BaseSource):
             return jsonify({"error": "Missing URL parameter"}), 400
         url = data["url"]
         content_type = data.get("content_type", "")
-        result = await self._process(url=url, content_type=content_type)
+        bypass_dedup = data.get("bypass_dedup", False)
+        result = await self._process(url=url, content_type=content_type, bypass_dedup=bypass_dedup)
         return jsonify({"result": result})
-
-    async def _process(self, url: str, content_type: str = "html") -> str:
+    async def _process(self, url: str, content_type: str = "html", bypass_dedup: bool = False) -> str:
         self.logger.info(f"HttpService received {url} and {content_type}.")
         try:
             async with aiohttp.ClientSession() as session:
@@ -69,7 +69,7 @@ class HttpService(BaseSource):
                         return f"unknown content type {content_type}."
                     if doc:
                         self.logger.output(doc.encode())
-                        await self._send_data(doc)
+                        await self._send_data(doc, bypass_dedup=bypass_dedup)
                     return "ok"
         except Exception as e:
             self.logger.error(f"Error: {e}")
