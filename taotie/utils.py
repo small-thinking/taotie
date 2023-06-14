@@ -160,8 +160,8 @@ async def text_to_triplets(
     text_summary: str,
     metadata: Dict[str, Any],
     logger: Logger,
-    model_type: str = "gpt-3.5-turbo",
-    max_tokens: int = 2000,
+    model_type: str = "gpt-3.5-turbo-0613",
+    max_tokens: int = 6000,
 ) -> List[str]:
     """Leverage prompt to use LLM to convert text summary to RDF triplets."""
     metadata_str = "\n".join(f"{key}: {value}" for key, value in metadata.items())
@@ -367,7 +367,7 @@ async def extract_representative_image(
         """
     logger.info(f"Extracting representative image from {repo_name}.")
     response = chat_completion(
-        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0613",
         prompt=f"""
         You are an information extractor that is going to extract the representative images according
         to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:
@@ -387,7 +387,7 @@ async def extract_representative_image(
         6. Please DO NOT RETURN any other words OTHER THAN THE JSON ITSELF.
         """,
         content=content,
-        max_tokens=1000,
+        max_tokens=2000,
     )
     image_url_json_str = response.choices[0].message.content
     # 3. Parse to get the url string.
