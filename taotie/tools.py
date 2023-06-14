@@ -32,7 +32,10 @@ def parse_args(parser: argparse.ArgumentParser):
         help="Comma-separated list of topic filters",
     )
     report_parser.add_argument(
-        "--model-type", type=str, default="gpt-4", help="Model type for report"
+        "--model-type",
+        type=str,
+        default="gpt-3.5-turbo-16k-0613",
+        help="Model type for report",
     )
     report_parser.add_argument(
         "--language", type=str, default="Chinese", help="Language for report"

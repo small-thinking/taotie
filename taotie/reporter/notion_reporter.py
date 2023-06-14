@@ -42,48 +42,48 @@ class NotionReporter(BaseReporter):
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-0613")
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k-0613")
         # Prompt.
         language = kwargs.get("language", "Chinese")
         if "github-repo" in self.topic_filters:
             self.report_prompt = f"""
             Please generate a report that will be published by the WECHAT BLOG based on the json string in the triple quotes.
-            Please follow the following rules STRICTLY:
-            1. Please summarize in {language} and give a short overall summary of the repos in this report.
-            2. Please skip the items that are not relevant to AI or the topics of {self.topic_filters}.
-            3. Please generate each item as an individual section, include the URL in each of the item, and \
+            Follow the following rules STRICTLY:
+            1. Summarize in {language} and at the beginning give a short overall summary of the repos in this report.
+            2. Skip the items that are not relevant to AI or the topics of {self.topic_filters}.
+            3. Generate each item as an individual section, include the URL in each of the item, and \
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
-                Please make the summary as informative as possible.
+                Make the summary as informative as possible.
             4. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
-            5. Please generate the description in an attractive way, so that the readers will be willing to check the content.
-            6. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
-            7. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
+            5. Generate the description in an attractive way, so that the readers will be willing to check the content.
+            6. Rank by importance (e.g. whether has image) and keep AT MOST the top 10 items based on the recommendation strength.
+            7. Add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
 
             Example items:
             1.【★★★★★】TransformerOptimus/SuperAGI
             这是一个用于构建和运行有用的自主智能体的Python项目。
-            推荐理由：自主性AI最新版本。
+            推荐理由：自主性AI最新版本。该项目旨在创造一个可以解决朴实问题的自主智能体。
             访问地址：https://github.com/TransformerOptimus/SuperAGI
 
-            2.【【★★★★】LLM-ToolMaker
+            2.【★★★★】LLM-ToolMaker
             这个项目提出了一种名为LLMs As Tool Makers (LATM)的闭环框架，其中大型语言模型(LLMs)可以作为工具制造者为解决问题创造自己的可重用工具。
-            推荐理由：开放框架 。
+            推荐理由：开放框架 。该项目旨在创造一个可以使用外部工具的自主智能体。
             访问地址：https://github.com/ctlllll/LLM-ToolMaker
 
             """
         else:
             self.report_prompt = f"""
             Please generate a report of the paper summary that will be published by the WECHAT BLOG based on the json string in the triple quotes.
-            Please follow the following rules STRICTLY:
-            1. Please summarize in {language} and give a short overall summary of the papers in this report.
-            2. Please SKIP the items that are not relevant to AI or the topics of {self.topic_filters}.
-            3. Please use the paper name as the title for each item. Then followed by a short overall summary of the paper.
-            4. Please emphasis the authors or afflications if they famous.
-            5. Please generate each item as an individual section, include the URL in each of the item, and \
+            Follow the following rules STRICTLY:
+            1. Summarize in {language} and at the beginning give a short overall summary of the repos in this report.
+            2. SKIP the items that are not relevant to AI or the topics of {self.topic_filters}.
+            3. use the paper name as the title for each item. Then followed by a short overall summary of the paper.
+            4. Emphasis the authors or afflications if they famous.
+            5. Generate each item as an individual section, include the URL in each of the item, and \
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
-                Please make the summary as informative as possible.
-            6. Rank and only keep AT MOST the top 10 items based on the recommendation strength.
-            7. Please add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
+                Make the summary as informative as possible.
+            6. Rank by importance (e.g. authors or affiliation) and only keep AT MOST the top 10 items based on the recommendation strength.
+            7. Add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
 
             Example items:
             1.【★★★★★】Training Language Models with Language Feedback at Scale
@@ -194,7 +194,7 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 3600 if self.model_type == "gpt-3.5-turbo" else 7000
+        truncate_size = 12000 if self.model_type == "gpt-3.5-turbo-16k-0613" else 7000
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
