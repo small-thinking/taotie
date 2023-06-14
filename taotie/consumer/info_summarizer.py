@@ -62,8 +62,8 @@ class InfoSummarizer(Consumer):
                 "tags": ["deep-learning", "image-generation"],
             }}
             """
-        self.max_tokens = kwargs.get("max_tokens", 800)
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo")
+        self.max_tokens = kwargs.get("max_tokens", 2400)
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-0613")
         self.logger.debug("PrintConsumer initialized.")
 
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
