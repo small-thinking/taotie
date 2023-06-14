@@ -36,9 +36,14 @@ class HttpService(BaseSource):
         url = data["url"]
         content_type = data.get("content_type", "")
         bypass_dedup = data.get("bypass_dedup", False)
-        result = await self._process(url=url, content_type=content_type, bypass_dedup=bypass_dedup)
+        result = await self._process(
+            url=url, content_type=content_type, bypass_dedup=bypass_dedup
+        )
         return jsonify({"result": result})
-    async def _process(self, url: str, content_type: str = "html", bypass_dedup: bool = False) -> str:
+
+    async def _process(
+        self, url: str, content_type: str = "html", bypass_dedup: bool = False
+    ) -> str:
         self.logger.info(f"HttpService received {url} and {content_type}.")
         try:
             async with aiohttp.ClientSession() as session:

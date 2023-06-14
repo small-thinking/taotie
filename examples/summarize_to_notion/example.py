@@ -29,8 +29,7 @@ def create_notion_summarizer():
     storage = NotionStorage(
         root_page_id=os.getenv("NOTION_ROOT_PAGE_ID"), verbose=verbose
     )
-    # dedup_memory = DedupMemory(redis_url=redis_url)
-    dedup_memory = None
+    dedup_memory = DedupMemory(redis_url=redis_url)
     consumer = InfoSummarizer(
         buffer_size=1000,
         summarize_instruction=instruction,

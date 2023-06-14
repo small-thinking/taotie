@@ -160,7 +160,7 @@ async def text_to_triplets(
     text_summary: str,
     metadata: Dict[str, Any],
     logger: Logger,
-    model_type: str = "gpt-3.5-turbo-0613",
+    model_type: str = "gpt-3.5-turbo-16k-0613",
     max_tokens: int = 6000,
 ) -> List[str]:
     """Leverage prompt to use LLM to convert text summary to RDF triplets."""
@@ -218,7 +218,7 @@ async def text_to_triplets(
         The JSON response will be DIRECTLY feed to a downstream program to parse the json.
         """
 
-    # Call OpenAPI gpt-3.5-turbo with the openai API
+    # Call OpenAPI gpt-3.5-turbo-16k-0613 with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -367,7 +367,7 @@ async def extract_representative_image(
         """
     logger.info(f"Extracting representative image from {repo_name}.")
     response = chat_completion(
-        "gpt-3.5-turbo-0613",
+        "gpt-3.5-turbo-16k-0613",
         prompt=f"""
         You are an information extractor that is going to extract the representative images according
         to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:
