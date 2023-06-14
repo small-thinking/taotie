@@ -42,7 +42,7 @@ class NotionReporter(BaseReporter):
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo")
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-0613")
         # Prompt.
         language = kwargs.get("language", "Chinese")
         if "github-repo" in self.topic_filters:
