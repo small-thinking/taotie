@@ -38,8 +38,7 @@ class BaseSource(ABC):
     @abstractmethod
     async def _cleanup(self):
         """Clean up the source."""
-
-    async def _send_data(self, information: Information) -> bool:
+    async def _send_data(self, information: Information, bypass_dedup: bool = False) -> bool:
         """This function is used to send the grabbed data to the message queue.
         It is supposed to be called within the callback function of the streaming
         function or in the forever loop.
@@ -50,8 +49,8 @@ class BaseSource(ABC):
         Returns:
             bool: True if the data is sent successfully, False otherwise.
         """
-        # Skip duplicate information according to the id.
-        if self.dedup_memory:
+        # Skip duplicate information according to the id if bypass_dedup is False.
+        if not bypass_dedup and self.dedup_memory:
             id = information.get_id()
             if await self.dedup_memory.exists(id):
                 self.logger.warning(f"Duplicated information: {id}, will ignore.")
