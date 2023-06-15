@@ -34,7 +34,7 @@ def create_notion_summarizer():
         buffer_size=1000,
         summarize_instruction=instruction,
         verbose=verbose,
-        dedup=True,
+        dedup=False,
         storage=storage,
         max_tokens=1000,
         max_buffer_size=1000,

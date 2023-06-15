@@ -350,7 +350,7 @@ async def extract_representative_image(
     try:
         readme_response = requests.get(readme_url)
         readme_response.raise_for_status()  # Raise an exception if the request was not successful
-        content = readme_response.text[:2000]
+        content = readme_response.text[:6000]
     except requests.exceptions.RequestException as e:
         print(f"Error retrieving content from URL: {e}")
     if not content:
