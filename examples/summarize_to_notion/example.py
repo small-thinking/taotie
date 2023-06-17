@@ -2,6 +2,8 @@
 """
 import asyncio
 import os
+import argparse
+import os
 
 from taotie.consumer.info_summarizer import InfoSummarizer
 from taotie.gatherer import Gatherer
@@ -53,23 +55,25 @@ def create_notion_summarizer():
     http_service_source = HttpService(
         sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
     )
-    orchestrator.add_source(http_service_source)
-
-    # Twitter source.
-    # rules = ["from:RunGreatClasses", "#GPT", "#llm", "#AI", "#AGI", "foundation model"]
-    # twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
-    # orchestrator.add_source(twitter_source)
-
-    # Github source.
-    github_source = GithubTrends(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
-    orchestrator.add_source(github_source)
-
-    # Arxiv source.
-    arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
+for source in data_sources:
+        if source == 'http_service':
+            http_service_source = HttpService(sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000)
+            orchestrator.add_source(http_service_source)
+        elif source == 'github':
+            github_source = GithubTrends(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
+            orchestrator.add_source(github_source)
+        elif source == 'arxiv':
+            arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
+            orchestrator.add_source(arxiv_source)
     orchestrator.add_source(arxiv_source)
 
     asyncio.run(orchestrator.run())
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Specify data sources for the script.')
+    parser.add_argument('--data-sources', dest='data_sources', default='http_service', help='A comma-separated list of data sources to use (default: http_service)')
+    args = parser.parse_args()
+    data_sources = args.data_sources.split(',')
+    create_notion_summarizer(data_sources)
     create_notion_summarizer()
