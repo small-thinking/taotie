@@ -4,9 +4,8 @@ import asyncio
 import json
 from typing import Any, Dict, List
 
-from message_queue import MessageQueue
-
 from taotie.consumer.base import Consumer
+from taotie.message_queue import MessageQueue
 from taotie.utils import Logger
 
 
