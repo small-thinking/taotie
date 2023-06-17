@@ -65,6 +65,11 @@ for source in data_sources:
         elif source == 'arxiv':
             arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
             orchestrator.add_source(arxiv_source)
+        elif source == 'twitter':
+            rules = args.twitter_rules.split(',')
+            twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
+            orchestrator.add_source(twitter_source)
+            orchestrator.add_source(arxiv_source)
     orchestrator.add_source(arxiv_source)
 
     asyncio.run(orchestrator.run())
@@ -72,8 +77,11 @@ for source in data_sources:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Specify data sources for the script.')
+parser.add_argument('--data-sources', dest='data_sources', default='http_service', help='A comma-separated list of data sources to use (default: http_service)')
+parser.add_argument('--twitter-rules', dest='twitter_rules', default='', help='A comma-separated list of rules for the Twitter source')
     parser.add_argument('--data-sources', dest='data_sources', default='http_service', help='A comma-separated list of data sources to use (default: http_service)')
     args = parser.parse_args()
     data_sources = args.data_sources.split(',')
     create_notion_summarizer(data_sources)
+create_notion_summarizer(data_sources, args.twitter_rules)
     create_notion_summarizer()
