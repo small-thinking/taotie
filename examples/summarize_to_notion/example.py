@@ -3,6 +3,7 @@
 import asyncio
 import os
 import argparse
+
 import os
 
 from taotie.consumer.info_summarizer import InfoSummarizer
@@ -83,6 +84,5 @@ parser.add_argument('--twitter-rules', dest='twitter_rules', default='', help='A
     args = parser.parse_args()
     data_sources = args.data_sources.split(',')
     create_notion_summarizer(data_sources)
-create_notion_summarizer(data_sources, args.twitter_rules)
-
+    create_notion_summarizer(data_sources, args.twitter_rules)
     create_notion_summarizer()
