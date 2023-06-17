@@ -88,6 +88,9 @@ Click the entry can show the details, including the knowledge graph summarized f
 <p align="center">
     <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
+The --data-sources flag allows you to specify the data sources to be used. It accepts a comma-separated list of data sources. The possible values are "http_service", "github", "arxiv", and "twitter".
+
+## Tools
 </p>
 
 ## Tools
