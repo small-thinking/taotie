@@ -46,7 +46,9 @@ ARXIV_AUTHORS=Yann LeCun,Kaiming He,Ross Girshick,Piotr Dollár,Alec Radford,Ily
 At the root of the repository, run the following command:
 ```bash
 # Build the docker image via docker-compose
+python example.py --data-sources "http_service,github,arxiv"
 docker-compose -f examples/summarize_to_notion/docker-compose.yml up
+The --data-sources flag allows you to specify the data sources to be used. It accepts a comma-separated list of data sources. The possible values are "http_service", "github", and "arxiv".
 ```
 
 
