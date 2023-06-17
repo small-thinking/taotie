@@ -65,10 +65,10 @@ for source in data_sources:
         elif source == 'arxiv':
             arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
             orchestrator.add_source(arxiv_source)
-        elif source == 'twitter':
-            rules = args.twitter_rules.split(',')
-            twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
-            orchestrator.add_source(twitter_source)
+elif source == 'twitter':
+    rules = args.twitter_rules.split(',')
+    twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
+    orchestrator.add_source(twitter_source)
             orchestrator.add_source(arxiv_source)
     orchestrator.add_source(arxiv_source)
 
@@ -84,4 +84,5 @@ parser.add_argument('--twitter-rules', dest='twitter_rules', default='', help='A
     data_sources = args.data_sources.split(',')
     create_notion_summarizer(data_sources)
 create_notion_summarizer(data_sources, args.twitter_rules)
+
     create_notion_summarizer()
