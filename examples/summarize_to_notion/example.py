@@ -14,12 +14,12 @@ from taotie.sources.http_service import HttpService
 from taotie.sources.twitter import TwitterSubscriber
 from taotie.storage.memory import DedupMemory
 from taotie.storage.notion import NotionStorage
-from taotie.utils import load_env
+from taotie.utils import Logger, load_env
 
 
 def create_notion_summarizer(data_sources: str, twitter_rules: str):
     load_env()  # This has to be called as early as possible.
-
+    logger = Logger(logger_name=__name__)
     verbose = True
     batch_size = 1
     fetch_interval = 10
@@ -54,6 +54,8 @@ def create_notion_summarizer(data_sources: str, twitter_rules: str):
     http_service_source = HttpService(
         sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
     )
+
+    logger.info(f"Add data sources: {data_sources}")
     for source in data_sources:
         if source == "http_service":
             http_service_source = HttpService(
@@ -72,7 +74,7 @@ def create_notion_summarizer(data_sources: str, twitter_rules: str):
             arxiv_source = Arxiv(sink=mq, verbose=verbose, dedup_memory=dedup_memory)
             orchestrator.add_source(arxiv_source)
         elif source == "twitter":
-            rules = args.twitter_rules.split(",")
+            rules = twitter_rules.split(",")
             twitter_source = TwitterSubscriber(rules=rules, sink=mq, verbose=verbose)
             orchestrator.add_source(twitter_source)
 
