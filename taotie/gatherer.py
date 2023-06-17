@@ -2,9 +2,9 @@
 """
 import asyncio
 import json
-import signal
-from asyncio import Queue
 from typing import Any, Dict, List
+
+from message_queue import MessageQueue
 
 from taotie.consumer.base import Consumer
 from taotie.utils import Logger
@@ -15,7 +15,7 @@ class Gatherer:
 
     def __init__(
         self,
-        message_queue: Queue,
+        message_queue: MessageQueue,
         consumer: Consumer,
         batch_size: int = 1,
         fetch_interval: int = 5,
