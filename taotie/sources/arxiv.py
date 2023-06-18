@@ -28,11 +28,12 @@ class Arxiv(BaseSource):
         self.logger.info(
             f"Loading arxiv author data from [{self.arxiv_author_json_file}]"
         )
+        self.authors = []
         with open(self.arxiv_author_json_file) as f:
             author_dict = json.load(f)
-        self.authors = {
-            affiliation: authors for affiliation, authors in author_dict.items()
-        }
+        self.authors = [
+            author for affiliation in author_dict for author in author_dict[affiliation]
+        ]
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
         self.check_interval = kwargs.get("check_interval", 3600 * 12)
         self.logger.info(f"Arxiv data source initialized.")
