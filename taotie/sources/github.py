@@ -28,36 +28,6 @@ class GithubTrends(BaseSource):
     async def _cleanup(self):
         pass
 
-    async def run(self):
-        async with aiohttp.ClientSession() as session:
-            while True:
-                async with session.get(self.url, verify_ssl=False) as response:
-                    soup = BeautifulSoup(await response.text(), "html.parser")
-
-                repo_blob = soup.find_all("article", {"class": "Box-row"})
-                for idx, blob in enumerate(repo_blob):
-                    repo_meta = _extract_repo_info(self, blob, session)
-
-                    github_event = Information(
-                        type="github-repo",
-                        datetime_str=get_datetime(),
-                        id=repo_meta["repo_name"],
-                        uri=repo_meta["repo_url"],
-                        content=repo_meta["repo_readme"],
-                        repo_desc=repo_meta["repo_desc"],
-                        repo_lang=repo_meta["repo_lang"],
-                        repo_star=repo_meta["repo_star"],
-                        repo_fork=repo_meta["repo_fork"],
-                    )
-                    res = await self._send_data(github_event)
-                    if res:
-                        self.logger.debug(f"{idx}: {github_event.encode()}")
-                    await asyncio.sleep(10)
-                self.logger.info(
-                    f"Github event checked. Will check again in {self.check_interval} seconds."
-                )
-                await asyncio.sleep(self.check_interval)
-
     async def _extract_repo_info(self, blob, session):
         repo_name = blob.find("h2", {"class": "h3 lh-condensed"}).a["href"]
         repo_url = (
@@ -98,3 +68,33 @@ class GithubTrends(BaseSource):
         except Exception as e:
             self.logger.warning(f"Failed to fetch from {readme_url}. Reason: {e}")
             return {}
+
+    async def run(self):
+        async with aiohttp.ClientSession() as session:
+            while True:
+                async with session.get(self.url, verify_ssl=False) as response:
+                    soup = BeautifulSoup(await response.text(), "html.parser")
+
+                repo_blob = soup.find_all("article", {"class": "Box-row"})
+                for idx, blob in enumerate(repo_blob):
+                    repo_meta = await self._extract_repo_info(blob, session)
+
+                    github_event = Information(
+                        type="github-repo",
+                        datetime_str=get_datetime(),
+                        id=repo_meta["repo_name"],
+                        uri=repo_meta["repo_url"],
+                        content=repo_meta["repo_readme"],
+                        repo_desc=repo_meta["repo_desc"],
+                        repo_lang=repo_meta["repo_lang"],
+                        repo_star=repo_meta["repo_star"],
+                        repo_fork=repo_meta["repo_fork"],
+                    )
+                    res = await self._send_data(github_event)
+                    if res:
+                        self.logger.debug(f"{idx}: {github_event.encode()}")
+                    await asyncio.sleep(10)
+                self.logger.info(
+                    f"Github event checked. Will check again in {self.check_interval} seconds."
+                )
+                await asyncio.sleep(self.check_interval)
