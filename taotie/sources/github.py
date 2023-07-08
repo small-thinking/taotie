@@ -28,6 +28,47 @@ class GithubTrends(BaseSource):
     async def _cleanup(self):
         pass
 
+    async def _extract_repo_info(self, blob, session):
+        repo_name = blob.find("h2", {"class": "h3 lh-condensed"}).a["href"]
+        repo_url = (
+            "https://github.com"
+            + blob.find("h2", {"class": "h3 lh-condensed"}).a["href"]
+        )
+        repo_desc_blob = blob.find("p", {"class": "col-9 color-fg-muted my-1 pr-4"})
+        repo_desc = repo_desc_blob.text.strip() if repo_desc_blob else ""
+        repo_lang_blob = blob.find("span", {"class": "d-inline-block ml-0 mr-3"})
+        repo_lang = repo_lang_blob.text.strip() if repo_lang_blob else ""
+        star_and_fork = blob.find_all("a", {"class": "Link--muted d-inline-block mr-3"})
+        repo_star = star_and_fork[0].text.strip()
+        repo_fork = star_and_fork[1].text.strip()
+        # Extract the detailed description from the github main README.md if any.
+        readme_url = f"https://raw.githubusercontent.com{repo_name}/master/README.md"
+        if not check_url_exists(readme_url):
+            readme_url = f"https://raw.githubusercontent.com{repo_name}/main/README.md"
+        repo_readme = ""
+        try:
+            async with session.get(readme_url, verify_ssl=False) as readme_response:
+                if readme_response.status == 200:
+                    repo_readme = await readme_response.text()
+                    repo_readme = repo_readme[: self.readme_truncate_size]
+                else:
+                    self.logger.warning(
+                        f"Failed to fetch from {readme_url}. Status: {readme_response.status}"
+                    )
+                    raise Exception(readme_response.status)
+            return {
+                "repo_name": repo_name,
+                "repo_url": repo_url,
+                "repo_desc": repo_desc,
+                "repo_lang": repo_lang,
+                "repo_star": repo_star,
+                "repo_fork": repo_fork,
+                "repo_readme": repo_readme,
+            }
+        except Exception as e:
+            self.logger.warning(f"Failed to fetch from {readme_url}. Reason: {e}")
+            return {}
+
     async def run(self):
         async with aiohttp.ClientSession() as session:
             while True:
@@ -36,58 +77,18 @@ class GithubTrends(BaseSource):
 
                 repo_blob = soup.find_all("article", {"class": "Box-row"})
                 for idx, blob in enumerate(repo_blob):
-                    repo_name = blob.find("h2", {"class": "h3 lh-condensed"}).a["href"]
-                    repo_url = (
-                        "https://github.com"
-                        + blob.find("h2", {"class": "h3 lh-condensed"}).a["href"]
-                    )
-                    repo_desc_blob = blob.find(
-                        "p", {"class": "col-9 color-fg-muted my-1 pr-4"}
-                    )
-                    repo_desc = repo_desc_blob.text.strip() if repo_desc_blob else ""
-                    repo_lang_blob = blob.find(
-                        "span", {"class": "d-inline-block ml-0 mr-3"}
-                    )
-                    repo_lang = repo_lang_blob.text.strip() if repo_lang_blob else ""
-                    star_and_fork = blob.find_all(
-                        "a", {"class": "Link--muted d-inline-block mr-3"}
-                    )
-                    repo_star = star_and_fork[0].text.strip()
-                    repo_fork = star_and_fork[1].text.strip()
-                    # Extract the detailed description from the github main README.md if any.
-                    readme_url = (
-                        f"https://raw.githubusercontent.com{repo_name}/master/README.md"
-                    )
-                    if not check_url_exists(readme_url):
-                        readme_url = f"https://raw.githubusercontent.com{repo_name}/main/README.md"
-                    repo_readme = ""
-                    try:
-                        async with session.get(
-                            readme_url, verify_ssl=False
-                        ) as readme_response:
-                            if readme_response.status == 200:
-                                repo_readme = await readme_response.text()
-                                repo_readme = repo_readme[: self.readme_truncate_size]
-                            else:
-                                self.logger.warning(
-                                    f"Failed to fetch from {readme_url}. Status: {readme_response.status}"
-                                )
-                                raise Exception(readme_response.status)
-                    except Exception as e:
-                        self.logger.warning(
-                            f"Failed to fetch from {readme_url}. Reason: {e}"
-                        )
+                    repo_meta = await self._extract_repo_info(blob, session)
 
                     github_event = Information(
                         type="github-repo",
                         datetime_str=get_datetime(),
-                        id=repo_name,
-                        uri=repo_url,
-                        content=repo_readme,
-                        repo_desc=repo_desc,
-                        repo_lang=repo_lang,
-                        repo_star=repo_star,
-                        repo_fork=repo_fork,
+                        id=repo_meta["repo_name"],
+                        uri=repo_meta["repo_url"],
+                        content=repo_meta["repo_readme"],
+                        repo_desc=repo_meta["repo_desc"],
+                        repo_lang=repo_meta["repo_lang"],
+                        repo_star=repo_meta["repo_star"],
+                        repo_fork=repo_meta["repo_fork"],
                     )
                     res = await self._send_data(github_event)
                     if res:

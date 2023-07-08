@@ -442,7 +442,7 @@ async def upload_image_to_imgur(image_path: str, logger: Logger) -> str:
                 response.raise_for_status()
                 data = await response.json()
         except Exception as e:
-            retest_interval = 600
+            retest_interval = 300
             logger.warning(
                 f"Failed to upload image to imgur: {e}, retest in {retest_interval} seconds."
             )

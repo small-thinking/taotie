@@ -107,3 +107,8 @@ python taotie/tools.py report --date-lookback 3 --type-filter github-repo
     <img src="./images/example-report.png" alt="drawing"/>
     <br>Example Report
 </p>
+
+## Clean up docker images not used
+```
+docker rm $(docker ps -a -q) ; docker images | grep '<none>' | awk '{print $3}' | xargs docker rmi
+```
