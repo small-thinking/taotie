@@ -284,7 +284,7 @@ def construct_knowledge_graph(triplets: List[str], logger: Optional[Logger] = No
 
     # Create a Networkx Graph and visualize it
     graph = nx.DiGraph()
-    for subj, pred, obj in knowledge_graph:
+    for subj, pred, obj in knowledge_graph:  # type: ignore
         graph.add_edge(str(subj), str(obj), label=str(pred.split("/")[-1]))
 
     # Configure the font
