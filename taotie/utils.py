@@ -258,7 +258,7 @@ async def text_to_triplets(
     return processed_triplets
 
 
-def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
+def construct_knowledge_graph(triplets: List[str], logger: Optional[Logger] = None):
     if not logger:
         logger = Logger(os.path.basename(__file__))
 

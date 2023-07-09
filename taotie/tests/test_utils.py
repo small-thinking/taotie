@@ -151,8 +151,29 @@ def test_chat_completion(
 )
 async def test_text_to_triplets(text_summary, metadata, expected_result):
     load_dotenv()
-    logger = Logger("test_text_to_triplets")
+    logger = Logger("test")
     with patch("taotie.utils.chat_completion") as mock_chat_completion:
         mock_chat_completion.return_value = json.dumps({"triplets": expected_result})
         result = await text_to_triplets(text_summary, metadata, logger)
         assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "triplets, expected_image_path",
+    [
+        (
+            ["'John' 'has-age' '30'", "'Jane' 'has-age' '35'"],
+            "knowledge_graph_",
+        )
+    ],
+)
+def test_construct_knowledge_graph_generates_image(
+    triplets, expected_image_path, tmpdir
+):
+    with patch("matplotlib.pyplot") as mock_plt:
+        mock_plt.savefig.return_value = None
+        mock_plt.clf.return_value = None
+        knowledge_graph_image_path = construct_knowledge_graph(triplets, logger=None)
+        assert knowledge_graph_image_path.startswith(expected_image_path)
+        assert os.path.exists(knowledge_graph_image_path)
+        os.remove(knowledge_graph_image_path)
