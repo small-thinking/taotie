@@ -360,6 +360,23 @@ def check_url_exists(url):
 async def extract_representative_image(
     repo_name: str, readme_url: str, logger: Logger
 ) -> str:
+    """Extracts the representative image from a GitHub repository README.md.
+
+    Parameters:
+    repo_name (str): The name of the GitHub repository.
+    readme_url (str): The URL of the README.md file.
+    logger (Logger): The logger object.
+
+    Returns:
+    str: The URL of the representative image uploaded to Imgur.
+
+    Functionality:
+    1. Fetches the README.md content from the given URL.
+    2. Uses OpenAI's chat completion API to extract the most representative image URL from the README.md content.
+    3. Checks if the extracted URL is valid. If not, returns an empty string.
+    4. Downloads the image at the extracted URL and uploads it to Imgur.
+    5. Returns the Imgur URL of the uploaded image. If any step fails, returns an empty string.
+    """
     # 1. Fetch the README.md content.
     content = ""
     try:
@@ -388,17 +405,13 @@ async def extract_representative_image(
         to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:
 
         1. Please extract the link of the most representative image in the markdown content based on your inference.
-
         2. If the image path is already a full URL (e.g. starts with http:// or https://), use the URL as is.
-
         3. If the image path is a relative path, please construct the absolute path of the image with the rule:
         https://github.com[repo_name]/blob/[branch_name]/[relative_path].
-
         4. Please ONLY RETURN a JSON where THERE IS A KEY "image_url" with the link of the image, e.g.
         {{
             "image_url": "https://github.com/openai/openai-gpt/blob/main/image.png"
         }}
-
         6. Please DO NOT RETURN any other words OTHER THAN THE JSON ITSELF.
         """,
         content=content,

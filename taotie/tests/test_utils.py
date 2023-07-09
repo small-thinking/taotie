@@ -151,7 +151,7 @@ def test_chat_completion(
 )
 async def test_text_to_triplets(text_summary, metadata, expected_result):
     load_dotenv()
-    logger = Logger("test")
+    logger = Logger("test_text_to_triplets")
     with patch("taotie.utils.chat_completion") as mock_chat_completion:
         mock_chat_completion.return_value = json.dumps({"triplets": expected_result})
         result = await text_to_triplets(text_summary, metadata, logger)
@@ -167,9 +167,7 @@ async def test_text_to_triplets(text_summary, metadata, expected_result):
         )
     ],
 )
-def test_construct_knowledge_graph_generates_image(
-    triplets, expected_image_path, tmpdir
-):
+def test_construct_knowledge_graph_generates_image(triplets, expected_image_path):
     with patch("matplotlib.pyplot") as mock_plt:
         mock_plt.savefig.return_value = None
         mock_plt.clf.return_value = None
@@ -177,3 +175,74 @@ def test_construct_knowledge_graph_generates_image(
         assert knowledge_graph_image_path.startswith(expected_image_path)
         assert os.path.exists(knowledge_graph_image_path)
         os.remove(knowledge_graph_image_path)
+
+
+@pytest.mark.parametrize(
+    "url, status_code, expected",
+    [
+        ("https://example.com", 200, True),
+        ("https://example.com", 404, False),
+        ("https://example.invalid", None, False),
+    ],
+)
+def test_check_url_exists(url, status_code, expected):
+    with patch("requests.head") as mock_head:
+        mock_head.return_value.status_code = status_code
+        result = check_url_exists(url)
+        assert result == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "repo_name, readme_response, chat_completion_response, check_url_exists_response, expected_result, readme_url",
+    [
+        (
+            "test-repo",
+            "# Hello\n![image](https://example.com/image.png)",
+            '{"image_url": "https://example.com/image.png"}',
+            True,
+            "https://i.imgur.com/image.png",
+            "https://raw.githubusercontent.com/test-repo/master/README.md",
+        ),
+        (
+            "test-repo-invalid-url",
+            "# Hello\n![image](https://example.invalid/image.png)",
+            '{"image_url": "https://example.invalid/image.png"}',
+            False,
+            "",
+            "https://raw.githubusercontent.com/test-repo-invalid-url/master/README.md",
+        ),
+        (
+            "test-repo-no-image",
+            "# Hello",
+            '{"image_url": ""}',
+            False,
+            "",
+            "https://raw.githubusercontent.com/test-repo-no-image/master/README.md",
+        ),
+    ],
+)
+async def test_extract_representative_image(
+    repo_name,
+    readme_response,
+    chat_completion_response,
+    check_url_exists_response,
+    expected_result,
+    readme_url,
+):
+    logger = Logger("test_extract_representative_image")
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.text = readme_response
+        mock_get.return_value.status_code = 200
+        with patch("taotie.utils.chat_completion") as mock_chat_completion:
+            mock_chat_completion.return_value = chat_completion_response
+            with patch("taotie.utils.check_url_exists") as mock_check_url_exists:
+                mock_check_url_exists.return_value = check_url_exists_response
+                with patch(
+                    "taotie.utils.save_image_to_imgur"
+                ) as mock_save_image_to_imgur:
+                    mock_save_image_to_imgur.return_value = expected_result
+                    result = await extract_representative_image(
+                        repo_name=repo_name, readme_url=readme_url, logger=logger
+                    )
+                    assert result == expected_result
