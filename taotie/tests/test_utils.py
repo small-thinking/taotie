@@ -151,7 +151,7 @@ def test_chat_completion(
 )
 async def test_text_to_triplets(text_summary, metadata, expected_result):
     load_dotenv()
-    logger = Logger("test")
+    logger = Logger("test_text_to_triplets")
     with patch("taotie.utils.chat_completion") as mock_chat_completion:
         mock_chat_completion.return_value = json.dumps({"triplets": expected_result})
         result = await text_to_triplets(text_summary, metadata, logger)
