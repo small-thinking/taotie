@@ -230,7 +230,7 @@ async def test_extract_representative_image(
     expected_result,
     readme_url,
 ):
-    logger = Logger("test_extract_representative_image")
+    logger = Logger("test")
     with patch("requests.get") as mock_get:
         mock_get.return_value.text = readme_response
         mock_get.return_value.status_code = 200
