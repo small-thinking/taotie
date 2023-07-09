@@ -45,7 +45,7 @@ class TwitterSubscriber(BaseSource):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             await loop.run_in_executor(executor, self.sync_twitter_subscriber.run)
         while True:
-            tweet: Information = await self.internal_queue.get()
+            tweet: Information = await self.internal_queue.get()  # type: ignore
             self.batch.append(tweet)
             if len(self.batch) >= self.batch_send_size:
                 await asyncio.gather(*(self._send_data(t) for t in self.batch))
