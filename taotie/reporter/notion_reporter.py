@@ -203,12 +203,11 @@ class NotionReporter(BaseReporter):
         self.logger.output(
             f"Prompt tokens: {prompt_tokens}, response tokens: {max_tokens}"
         )
-        response = chat_completion(
+        result = chat_completion(
             model_type=self.model_type,
             prompt=self.report_prompt,
             content=content_prompt,
             max_tokens=max_tokens,
             temperature=0.0,
         )
-        result = response.choices[0].message.content
         return result

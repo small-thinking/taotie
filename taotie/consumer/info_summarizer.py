@@ -78,7 +78,7 @@ class InfoSummarizer(Consumer):
         except Exception as e:
             # Ask LLM to fix the potentially malformed json string.
             self.logger.warning(f"Generated summary is not in JSON, fixing...")
-            response = chat_completion(
+            summary_json_str = chat_completion(
                 model_type=self.model_type,
                 prompt="""
                 You are a json fixer that can fix various types of malformed json strings.
@@ -91,7 +91,6 @@ class InfoSummarizer(Consumer):
                 max_tokens=self.max_tokens,
                 temperature=0.05,
             )
-            summary_json_str = response.choices[0].message.content
         self.logger.info(
             f"""JSON summary result after fixing:
             {summary_json_str}
@@ -151,14 +150,13 @@ class InfoSummarizer(Consumer):
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        response = chat_completion(
+        result = chat_completion(
             model_type=self.model_type,
             prompt=prompt,
             content=input,
             max_tokens=self.max_tokens,
             temperature=0.0,
         )
-        result = response.choices[0].message.content
         self.logger.output(f"Get summary: {result}\n", color=Fore.BLUE)
         return result
 
