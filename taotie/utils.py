@@ -69,7 +69,7 @@ def chat_completion(
     content: str,
     max_tokens: int,
     temperature: float = 0.0,
-):
+) -> str:
     response = openai.ChatCompletion.create(
         model=model_type,
         messages=[
@@ -82,7 +82,23 @@ def chat_completion(
         max_tokens=max_tokens,
         temperature=temperature,
     )
-    return response
+    # refactor the below line by checking the response.choices[0].message.content step by step, and handle the error.
+    if "choices" not in response or len(response.get("choices", [])) == 0:
+        raise Exception(
+            "Failed to parse choices from openai.ChatCompletion response. The response: {response}"
+        )
+    first_choice = response["choices"][0]
+    if "message" not in first_choice:
+        raise Exception(
+            f"Failed to parse message from openai.ChatCompletion response. The choices block: {first_choice}"
+        )
+    message = first_choice.get("message", {})
+    if "content" not in message:
+        raise Exception(
+            f"Failed to parse content openai.ChatCompletion response. The message block: {message}"
+        )
+    result = message.get("content", "")
+    return result
 
 
 # Create a logger class that accept level setting.
@@ -222,14 +238,13 @@ async def text_to_triplets(
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
     openai.api_key = os.getenv("OPENAI_API_KEY")
-    response = chat_completion(
+    result = chat_completion(
         model_type=model_type,
         prompt=prompt,
         content=content,
         max_tokens=max_tokens,
         temperature=0.0,
     )
-    result = response.choices[0].message.content
     json_blob = json.loads(result)
     rdf_triplets = json_blob.get("triplets", [])
     # LLM may generate each triplets as a list instead of a string.
@@ -243,7 +258,7 @@ async def text_to_triplets(
     return processed_triplets
 
 
-def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
+def construct_knowledge_graph(triplets: List[str], logger: Optional[Logger] = None):
     if not logger:
         logger = Logger(os.path.basename(__file__))
 
@@ -269,7 +284,7 @@ def construct_knowledge_graph(triplets, logger: Optional[Logger] = None):
 
     # Create a Networkx Graph and visualize it
     graph = nx.DiGraph()
-    for subj, pred, obj in knowledge_graph:
+    for subj, pred, obj in knowledge_graph:  # type: ignore
         graph.add_edge(str(subj), str(obj), label=str(pred.split("/")[-1]))
 
     # Configure the font
@@ -345,6 +360,23 @@ def check_url_exists(url):
 async def extract_representative_image(
     repo_name: str, readme_url: str, logger: Logger
 ) -> str:
+    """Extracts the representative image from a GitHub repository README.md.
+
+    Parameters:
+    repo_name (str): The name of the GitHub repository.
+    readme_url (str): The URL of the README.md file.
+    logger (Logger): The logger object.
+
+    Returns:
+    str: The URL of the representative image uploaded to Imgur.
+
+    Functionality:
+    1. Fetches the README.md content from the given URL.
+    2. Uses OpenAI's chat completion API to extract the most representative image URL from the README.md content.
+    3. Checks if the extracted URL is valid. If not, returns an empty string.
+    4. Downloads the image at the extracted URL and uploads it to Imgur.
+    5. Returns the Imgur URL of the uploaded image. If any step fails, returns an empty string.
+    """
     # 1. Fetch the README.md content.
     content = ""
     try:
@@ -366,30 +398,25 @@ async def extract_representative_image(
         ```
         """
     logger.info(f"Extracting representative image from {repo_name}.")
-    response = chat_completion(
+    image_url_json_str = chat_completion(
         "gpt-3.5-turbo-16k-0613",
         prompt=f"""
         You are an information extractor that is going to extract the representative images according
         to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:
 
         1. Please extract the link of the most representative image in the markdown content based on your inference.
-
         2. If the image path is already a full URL (e.g. starts with http:// or https://), use the URL as is.
-
         3. If the image path is a relative path, please construct the absolute path of the image with the rule:
         https://github.com[repo_name]/blob/[branch_name]/[relative_path].
-
         4. Please ONLY RETURN a JSON where THERE IS A KEY "image_url" with the link of the image, e.g.
         {{
             "image_url": "https://github.com/openai/openai-gpt/blob/main/image.png"
         }}
-
         6. Please DO NOT RETURN any other words OTHER THAN THE JSON ITSELF.
         """,
         content=content,
         max_tokens=2000,
     )
-    image_url_json_str = response.choices[0].message.content
     # 3. Parse to get the url string.
     try:
         image_json_obj = json.loads(image_url_json_str)
