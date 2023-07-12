@@ -86,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data-sources",
         dest="data_sources",
-        default="http_service,http_service,github,arxiv",
+        default="http_service,github,arxiv",
         help="A comma-separated list of data sources to use (default: http_service)",
     )
     parser.add_argument(
