@@ -78,18 +78,20 @@ class GithubTrends(BaseSource):
                 repo_blob = soup.find_all("article", {"class": "Box-row"})
                 for idx, blob in enumerate(repo_blob):
                     repo_meta = await self._extract_repo_info(blob, session)
-
-                    github_event = Information(
-                        type="github-repo",
-                        datetime_str=get_datetime(),
-                        id=repo_meta["repo_name"],
-                        uri=repo_meta["repo_url"],
-                        content=repo_meta["repo_readme"],
-                        repo_desc=repo_meta["repo_desc"],
-                        repo_lang=repo_meta["repo_lang"],
-                        repo_star=repo_meta["repo_star"],
-                        repo_fork=repo_meta["repo_fork"],
-                    )
+                    try:
+                        github_event = Information(
+                            type="github-repo",
+                            datetime_str=get_datetime(),
+                            id=repo_meta["repo_name"],
+                            uri=repo_meta["repo_url"],
+                            content=repo_meta["repo_readme"],
+                            repo_desc=repo_meta["repo_desc"],
+                            repo_lang=repo_meta["repo_lang"],
+                            repo_star=repo_meta["repo_star"],
+                            repo_fork=repo_meta["repo_fork"],
+                        )
+                    except:
+                        self.logger.error(f"Repo meta: {repo_meta}")
                     res = await self._send_data(github_event)
                     if res:
                         self.logger.debug(f"{idx}: {github_event.encode()}")
