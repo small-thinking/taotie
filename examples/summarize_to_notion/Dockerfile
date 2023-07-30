@@ -42,7 +42,7 @@ EXPOSE 6543
 
 # Upgrade pip, install Poetry, and install project dependencies using Poetry
 RUN pip install --upgrade pip \
-    && pip install poetry==1.4.1 \
+    && curl -sSL https://install.python-poetry.org/ | python - \
     && poetry export --without-hashes -f requirements.txt > requirements.txt \
     && pip3 install -r requirements.txt \
     && pip3 install cryptography \
