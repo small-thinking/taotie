@@ -62,8 +62,8 @@ class InfoSummarizer(Consumer):
                 "tags": ["deep-learning", "image-generation"],
             }}
             """
-        self.max_tokens = kwargs.get("max_tokens", 800)
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo")
+        self.max_tokens = kwargs.get("max_tokens", 3000)
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k-0613")
         self.logger.debug("PrintConsumer initialized.")
 
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
@@ -78,7 +78,7 @@ class InfoSummarizer(Consumer):
         except Exception as e:
             # Ask LLM to fix the potentially malformed json string.
             self.logger.warning(f"Generated summary is not in JSON, fixing...")
-            response = chat_completion(
+            summary_json_str = chat_completion(
                 model_type=self.model_type,
                 prompt="""
                 You are a json fixer that can fix various types of malformed json strings.
@@ -89,8 +89,8 @@ class InfoSummarizer(Consumer):
                 {summary_json_str}
                 """,
                 max_tokens=self.max_tokens,
+                temperature=0.05,
             )
-            summary_json_str = response.choices[0].message.content
         self.logger.info(
             f"""JSON summary result after fixing:
             {summary_json_str}
@@ -150,14 +150,13 @@ class InfoSummarizer(Consumer):
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        response = chat_completion(
+        result = chat_completion(
             model_type=self.model_type,
             prompt=prompt,
             content=input,
             max_tokens=self.max_tokens,
             temperature=0.0,
         )
-        result = response.choices[0].message.content
         self.logger.output(f"Get summary: {result}\n", color=Fore.BLUE)
         return result
 

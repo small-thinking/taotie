@@ -27,8 +27,8 @@ repos:
     requires: [pytest]
 
   - id: coverage_report
-    name: Test coverage threshold 1 check
-    entry: coverage report --fail-under=1
+    name: Test coverage threshold 75 percent check
+    entry: coverage report --fail-under=75
     language: system
     pass_filenames: false
     types: [python]

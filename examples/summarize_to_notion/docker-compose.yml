@@ -28,6 +28,8 @@ services:
     build:
       context: ${PWD}
       dockerfile: ./examples/summarize_to_notion/Dockerfile
+    environment:
+      - data_sources=http_service,github,arxiv
     ports:
       - "6543:6543"
     depends_on:
