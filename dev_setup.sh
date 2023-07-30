@@ -5,3 +5,4 @@ conda activate taotie
 pip install poetry
 poetry shell
 poetry install
+source $HOME/.poetry/env
