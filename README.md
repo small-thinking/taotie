@@ -88,15 +88,27 @@ Click the entry can show the details, including the knowledge graph summarized f
 <p align="center">
     <img src="./images/github-repo.png" alt="drawing"/>
     <br>Summarized Github-repo (Github Trends)
+The --data-sources flag allows you to specify the data sources to be used. It accepts a comma-separated list of data sources. The possible values are "http_service", "github", "arxiv", and "twitter".
+
+## Tools
 </p>
 
 ## Tools
 1. Tools to generate the report based on the gathered data in notion database.
+```bash
+python taotie/tools.py report --date-lookback 3 --type-filter arxiv
 ```
-python taotie/tools.py report --date-lookback 2 --type-filter arxiv
+
+```bash
+python taotie/tools.py report --date-lookback 3 --type-filter github-repo
 ```
 
 <p align="center">
     <img src="./images/example-report.png" alt="drawing"/>
     <br>Example Report
 </p>
+
+## Clean up docker images not used
+```
+docker rm $(docker ps -a -q) ; docker images | grep '<none>' | awk '{print $3}' | xargs docker rmi
+```

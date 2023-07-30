@@ -2,11 +2,10 @@
 """
 import asyncio
 import json
-import signal
-from asyncio import Queue
 from typing import Any, Dict, List
 
 from taotie.consumer.base import Consumer
+from taotie.message_queue import MessageQueue
 from taotie.utils import Logger
 
 
@@ -15,7 +14,7 @@ class Gatherer:
 
     def __init__(
         self,
-        message_queue: Queue,
+        message_queue: MessageQueue,
         consumer: Consumer,
         batch_size: int = 1,
         fetch_interval: int = 5,
@@ -61,7 +60,7 @@ class Gatherer:
                         )
                         await asyncio.sleep(self.fetch_interval)
                         continue
-                    messages: List[Dict[str, Any]] = await self._filter(messages)
+                    messages: List[Dict[str, Any]] = await self._filter(messages)  # type: ignore
                     await self.consumer.process(messages)
         except asyncio.CancelledError:
             self.logger.info("Gatherer canceled.")

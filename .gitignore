@@ -131,3 +131,6 @@ dmypy.json
 # Local development
 .vscode/
 test_scripts
+
+# Personalized files
+**/arxiv_author.json
