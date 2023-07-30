@@ -41,11 +41,11 @@ COPY . .
 EXPOSE 6543
 
 # Upgrade pip, install Poetry, and install project dependencies using Poetry
-RUN pip install --upgrade pip \
-    && curl -sSL https://install.python-poetry.org/ | python - \
-    && poetry export --without-hashes -f requirements.txt > requirements.txt \
-    && pip3 install -r requirements.txt \
-    && pip3 install cryptography \
-    && pip3 install -e .
+RUN pip install --upgrade pip || { echo 'Command failed' ; exit 1; } \
+    && curl -sSL https://install.python-poetry.org/ | python - || { echo 'Command failed' ; exit 1; } \
+    && poetry export --without-hashes -f requirements.txt > requirements.txt || { echo 'Command failed' ; exit 1; } \
+    && pip3 install -r requirements.txt || { echo 'Command failed' ; exit 1; } \
+    && pip3 install cryptography || { echo 'Command failed' ; exit 1; } \
+    && pip3 install -e . || { echo 'Command failed' ; exit 1; }
 # Start the application
 CMD ["python", "examples/summarize_to_notion/example.py"]
