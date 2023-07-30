@@ -69,6 +69,27 @@ async def run_notion_reporter(args: argparse.Namespace):
     )
     await reporter.distill()
 
+async def write_report_to_notion(args: argparse.Namespace):
+    """Generate the report and write it to a new Notion page."""
+    load_dotenv()
+    database_id = os.environ.get("NOTION_DATABASE_ID")
+    if not database_id:
+        raise ValueError("NOTION_DATABASE_ID not found in environment")
+    type_filters = args.type_filters.split(",")
+    topic_filters = args.topic_filters.split(",")
+    reporter = NotionReporter(
+        knowledge_source_uri=database_id,
+        date_lookback=args.date_lookback,
+        type_filters=type_filters,
+        topic_filters=topic_filters
+        if topic_filters
+        else os.environ.get("CANDIDATE_TAGS", "").split(","),
+        model_type=args.model_type,
+        language=args.language,
+    )
+    report = await reporter.distill()
+    storage = NotionStorage(root_page_id=database_id)
+    await storage.save(report)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
