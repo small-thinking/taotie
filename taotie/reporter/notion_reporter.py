@@ -211,3 +211,8 @@ class NotionReporter(BaseReporter):
             temperature=0.0,
         )
         return result
+
+    async def write_report_to_notion(self, report: str):
+        """Write the generated report to a new Notion page."""
+        storage = NotionStorage(root_page_id=self.knowledge_source_uri)
+        await storage.save(report)
