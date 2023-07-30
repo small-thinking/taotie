@@ -5,3 +5,4 @@ conda activate taotie
 pip install poetry
 poetry shell
 poetry install
+pip install -e .
