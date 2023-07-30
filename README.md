@@ -103,6 +103,15 @@ python taotie/tools.py report --date-lookback 3 --type-filter arxiv
 python taotie/tools.py report --date-lookback 3 --type-filter github-repo
 ```
 
+2. Tools to generate the report and write it to a new Notion page.
+```bash
+python taotie/tools.py write_report_to_notion --date-lookback 3 --type-filter arxiv
+```
+
+```bash
+python taotie/tools.py write_report_to_notion --date-lookback 3 --type-filter github-repo
+```
+
 <p align="center">
     <img src="./images/example-report.png" alt="drawing"/>
     <br>Example Report
