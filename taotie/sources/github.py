@@ -39,8 +39,11 @@ class GithubTrends(BaseSource):
         repo_lang_blob = blob.find("span", {"class": "d-inline-block ml-0 mr-3"})
         repo_lang = repo_lang_blob.text.strip() if repo_lang_blob else ""
         star_and_fork = blob.find_all("a", {"class": "Link--muted d-inline-block mr-3"})
-        repo_star = star_and_fork[0].text.strip()
-        repo_fork = star_and_fork[1].text.strip()
+        repo_star = 0
+        repo_fork = 0
+        if star_and_fork:
+            repo_star = star_and_fork[0].text.strip()
+            repo_fork = star_and_fork[1].text.strip()
         # Extract the detailed description from the github main README.md if any.
         readme_url = f"https://raw.githubusercontent.com{repo_name}/master/README.md"
         if not check_url_exists(readme_url):
