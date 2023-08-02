@@ -28,7 +28,7 @@ class NotionStorage(Storage):
         self.database_id: Optional[str] = None
         self.logger.info("Notion storage initialized.")
 
-    async def save(
+    async def save_to_database(
         self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]], image_urls: List[str]
     ):
         """First create a database. And then create a page for each item in the database."""
