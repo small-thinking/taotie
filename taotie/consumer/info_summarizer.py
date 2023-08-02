@@ -131,6 +131,7 @@ class InfoSummarizer(Consumer):
                         representative_image_url_str,
                         knowledge_graph_image_url_str,
                     ],
+                    truncate=20,
                 )
                 self.logger.info(f"Saved to storage.")
             except Exception as e:
