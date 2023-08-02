@@ -67,10 +67,12 @@ async def run_notion_reporter(args: argparse.Namespace):
         model_type=args.model_type,
         language=args.language,
     )
-    await reporter.distill()
+    database_id = os.environ.get("NOTION_REPORT_DATABASE_ID", None)
+    await reporter.distill(database_id=database_id, type=type_filters[0])
 
 
 if __name__ == "__main__":
+    load_dotenv()
     parser = argparse.ArgumentParser(
         description="Argument Parser for Report and Delete Key"
     )
