@@ -15,7 +15,10 @@ class Storage(ABC):
 
     @abstractmethod
     async def save(
-        self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]], image_urls: List[str]
+        self,
+        data: List[Tuple[Dict[str, Any], Dict[str, Any]]],
+        image_urls: List[str],
+        **kwargs,
     ):
         """Save the data to the storage."""
         raise NotImplementedError

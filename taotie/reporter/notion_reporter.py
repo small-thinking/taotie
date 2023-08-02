@@ -104,7 +104,7 @@ class NotionReporter(BaseReporter):
     async def _cleanup(self):
         print("cleanup")
 
-    async def _distill(self):
+    async def _distill(self) -> str:
         """Grab the gathered knowledge from notion database and generate the text report.
 
         Returns:
@@ -115,6 +115,7 @@ class NotionReporter(BaseReporter):
         self.logger.output(json.dumps(doc_list, indent=2))
         report = await self._generate_report(doc_list)
         self.logger.output(f"{report}\n", color=Fore.BLUE)
+        return report
 
     async def _retrieve_data(self) -> List[Dict[str, Any]]:
         # Get the date range.
