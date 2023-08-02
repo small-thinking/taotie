@@ -15,7 +15,7 @@ class NotionStorage(Storage):
 
     def __init__(
         self,
-        root_page_id: str,
+        root_page_id: Optional[str] = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -25,20 +25,23 @@ class NotionStorage(Storage):
             raise ValueError("Please set the Notion token in .env.")
         self.notion = AsyncClient(auth=self.token)
         self.root_page_id = root_page_id
-        self.database_id: Optional[str] = None
         self.logger.info("Notion storage initialized.")
 
     async def save(
-        self, data: List[Tuple[Dict[str, Any], Dict[str, Any]]], image_urls: List[str]
+        self,
+        data: List[Tuple[Dict[str, Any], Dict[str, Any]]],
+        image_urls: List[str] = [],
+        **kwargs,
     ):
         """First create a database. And then create a page for each item in the database."""
-        if not self.database_id:
-            self.database_id = await self._get_or_create_database()
+        database_id = kwargs.get("database_id", None)
+        if not database_id:
+            database_id = await self._get_or_create_database()
         for raw_item, processed_item in data:
             await self._add_to_database(
-                self.database_id, raw_item, processed_item, image_urls
+                database_id, raw_item, processed_item, image_urls
             )
-        self.logger.info("Notion storage saved.")
+        self.logger.info("Notion storage saved to database.")
 
     async def _get_or_create_database(self) -> str:
         """Get the database id or create a new one if it does not exist."""
@@ -102,7 +105,7 @@ class NotionStorage(Storage):
             "URL": [
                 {
                     "type": "text",
-                    "text": {"content": item["uri"]},
+                    "text": {"content": uri},
                 }
             ],
         }
