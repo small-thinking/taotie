@@ -35,11 +35,12 @@ class NotionStorage(Storage):
     ):
         """First create a database. And then create a page for each item in the database."""
         database_id = kwargs.get("database_id", None)
+        truncate = kwargs.get("truncate", 100)
         if not database_id:
             database_id = await self._get_or_create_database()
         for raw_item, processed_item in data:
             await self._add_to_database(
-                database_id, raw_item, processed_item, image_urls
+                database_id, raw_item, processed_item, image_urls, truncate
             )
         self.logger.info("Notion storage saved to database.")
 
@@ -78,6 +79,7 @@ class NotionStorage(Storage):
         item: Dict[str, Any],
         processed_item: Dict[str, Any],
         image_files: List[str],
+        truncate: int,
     ) -> None:
         # Determine the icon.
         uri = item.get("uri", "")
@@ -109,7 +111,9 @@ class NotionStorage(Storage):
                 }
             ],
         }
-        children = await self.create_page_blocks(item, processed_item, image_files)
+        children = await self._create_page_blocks(
+            item, processed_item, image_files, truncate
+        )
 
         response = await self.notion.pages.create(
             parent={"type": "database_id", "database_id": database_id},
@@ -121,11 +125,12 @@ class NotionStorage(Storage):
             raise ValueError(f"Failed to add page to database: {response}")
         self.logger.info("Page added to database.")
 
-    async def create_page_blocks(
+    async def _create_page_blocks(
         self,
         raw_info: Dict[str, Any],
         processed_info: Dict[str, Any],
         image_urls: List[str],
+        truncate: int,
     ) -> List[Dict[str, Any]]:
         """Create the page blocks according to the information."""
         page_contents = []
@@ -203,7 +208,7 @@ class NotionStorage(Storage):
         content = raw_info.get("content", "")
         content = content.split("\n")
         for i, line in enumerate(content):
-            if i >= 20:
+            if i >= truncate:
                 page_contents.append(
                     {
                         "object": "block",

@@ -6,6 +6,7 @@ import asyncio
 import atexit
 import os
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Tuple
 
 from taotie.storage.notion import NotionStorage
@@ -41,7 +42,7 @@ class BaseReporter(ABC):
         """Clean up the source."""
         pass
 
-    async def distill(self, database_id: Optional[str] = None):
+    async def distill(self, database_id: Optional[str] = None, **kwargs):
         """Distill the knowledge."""
         if self._connected is False:
             await self._connect()
@@ -51,11 +52,17 @@ class BaseReporter(ABC):
             self.logger.info("Write reports to notion.")
             # Construct NotionStorage and the input and save the report into notion.
             storage = NotionStorage(root_page_id=None, verbose=self.verbose)
+            current_date = datetime.now()
+            formatted_date = current_date.strftime("%Y年%m月%d日")
+            type = "开源篇" if kwargs.get("type", None) else "学术篇"
+            title = "{formatted_date} AI进展报告{type}".format(
+                formatted_date=formatted_date, type=type
+            )
             data: List[Tuple[Dict[str, Any], Dict[str, Any]]] = []
             data.append(
                 (
                     {
-                        "id": "Title of the report",
+                        "id": title,
                         "datetime": datetime.now().isoformat(),
                         "type": "report",
                         "tags": ["test1", "test2"],
