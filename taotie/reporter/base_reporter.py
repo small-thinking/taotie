@@ -54,7 +54,7 @@ class BaseReporter(ABC):
             storage = NotionStorage(root_page_id=None, verbose=self.verbose)
             current_date = datetime.now()
             formatted_date = current_date.strftime("%Y年%m月%d日")
-            type = "开源篇" if kwargs.get("type", None) else "学术篇"
+            type = "开源篇" if kwargs.get("type", None) == "github-repo" else "学术篇"
             title = "{formatted_date} AI进展报告{type}".format(
                 formatted_date=formatted_date, type=type
             )
