@@ -48,6 +48,7 @@ class BaseReporter(ABC):
             await self._connect()
             self._connected = True
         result = await self._distill()
+        result_json = parse_json(result)
         if database_id:
             self.logger.info("Write reports to notion.")
             # Construct NotionStorage and the input and save the report into notion.
@@ -66,7 +67,7 @@ class BaseReporter(ABC):
                         "datetime": datetime.now().isoformat(),
                         "type": "report",
                         "tags": ["test1", "test2"],
-                        "content": result,
+                        "content": result_json,
                     },
                     {},
                 )

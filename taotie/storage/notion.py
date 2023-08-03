@@ -240,6 +240,53 @@ class NotionStorage(Storage):
             )
         return page_contents
 
+    async def _create_page_block_for_report(self, items: List[Dict[str, Any]]):
+        page_contents = []
+        for item in items:
+            # 1. Add Title as a heading_2
+            title_block = {
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [{"type": "text", "text": {"content": item["Title"]}}]
+                },
+            }
+            page_contents.append(title_block)
+
+            # 2. Add Summary as a paragraph
+            summary_block = {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {"type": "text", "text": {"content": item["Summary"]}}
+                    ]
+                },
+            }
+            page_contents.append(summary_block)
+
+            # 3. Add Reason as a second paragraph
+            reason_block = {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {"type": "text", "text": {"content": "推荐理由" + item["Reason"]}}
+                    ]
+                },
+            }
+            page_contents.append(reason_block)
+
+            # 4. Add URL as a URL
+            url_block = {
+                "object": "block",
+                "type": "bookmark",
+                "bookmark": {"url": item["URL"]},
+            }
+            page_contents.append(url_block)
+
+        return page_contents
+
 
 async def run():
     raw_data = {

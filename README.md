@@ -96,7 +96,7 @@ The --data-sources flag allows you to specify the data sources to be used. It ac
 ## Tools
 1. Tools to generate the report based on the gathered data in notion database.
 ```bash
-python taotie/tools.py report --date-lookback 3 --type-filter arxiv
+python taotie/tools.py report --date-lookback 5 --type-filter arxiv
 ```
 
 ```bash
