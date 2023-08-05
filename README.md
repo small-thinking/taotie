@@ -100,7 +100,7 @@ python taotie/tools.py report --date-lookback 5 --type-filter arxiv
 ```
 
 ```bash
-python taotie/tools.py report --date-lookback 3 --type-filter github-repo
+python taotie/tools.py report --date-lookback 5 --type-filter github-repo
 ```
 
 <p align="center">

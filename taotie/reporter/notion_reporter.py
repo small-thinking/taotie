@@ -123,7 +123,7 @@ class NotionReporter(BaseReporter):
         self.logger.output(f"Number docs retrieved: {len(doc_list)}\n")
         self.logger.output(json.dumps(doc_list, indent=2))
         report = await self._generate_report(doc_list)
-        self.logger.output(f"{report}\n", color=Fore.BLUE)
+        self.logger.output(f"Report: {report}\n", color=Fore.BLUE)
         return report
 
     async def _retrieve_data(self) -> List[Dict[str, Any]]:

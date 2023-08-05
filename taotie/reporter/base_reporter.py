@@ -72,7 +72,7 @@ class BaseReporter(ABC):
                     {},
                 )
             )
-            await storage.save(data, database_id=database_id)
+            await storage.save(data, database_id=database_id, doc_type="report")
 
     @abstractmethod
     async def _distill(self) -> str:
