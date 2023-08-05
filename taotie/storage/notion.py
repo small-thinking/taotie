@@ -2,6 +2,7 @@
 """
 import asyncio
 import datetime
+import json
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -36,11 +37,17 @@ class NotionStorage(Storage):
         """First create a database. And then create a page for each item in the database."""
         database_id = kwargs.get("database_id", None)
         truncate = kwargs.get("truncate", 100)
+        doc_type = kwargs.get("doc_type", "summary")
         if not database_id:
             database_id = await self._get_or_create_database()
         for raw_item, processed_item in data:
             await self._add_to_database(
-                database_id, raw_item, processed_item, image_urls, truncate
+                database_id,
+                raw_item,
+                processed_item,
+                image_urls,
+                truncate,
+                doc_type,
             )
         self.logger.info("Notion storage saved to database.")
 
@@ -80,6 +87,7 @@ class NotionStorage(Storage):
         processed_item: Dict[str, Any],
         image_files: List[str],
         truncate: int,
+        doc_type: str = "summary",
     ) -> None:
         # Determine the icon.
         uri = item.get("uri", "")
@@ -111,9 +119,12 @@ class NotionStorage(Storage):
                 }
             ],
         }
-        children = await self._create_page_blocks(
-            item, processed_item, image_files, truncate
-        )
+        if doc_type == "report":
+            children = await self._create_page_block_for_report(item["content"])
+        else:
+            children = await self._create_page_blocks(
+                item, processed_item, image_files, truncate
+            )
 
         response = await self.notion.pages.create(
             parent={"type": "database_id", "database_id": database_id},
@@ -238,6 +249,67 @@ class NotionStorage(Storage):
                     },
                 }
             )
+        return page_contents
+
+    async def _create_page_block_for_report(self, items: Dict[str, Any]):
+        page_contents = []
+        results: List[Dict[str, Any]] = items["results"]
+        for item in results:
+            # 1. Add Title as a heading_2
+            title_block = {
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": item.get("Title", "N/A Title")},
+                        }
+                    ]
+                },
+            }
+            page_contents.append(title_block)
+
+            # 2. Add Summary as a paragraph
+            summary_block = {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {"content": item.get("Summary", "N/A Summary")},
+                        }
+                    ]
+                },
+            }
+            page_contents.append(summary_block)
+
+            # 3. Add Reason as a second paragraph
+            reason_block = {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": "推荐理由: " + item.get("Reason", "N/A Reason")
+                            },
+                        }
+                    ]
+                },
+            }
+            page_contents.append(reason_block)
+
+            # 4. Add URL as a URL
+            url_block = {
+                "object": "block",
+                "type": "bookmark",
+                "bookmark": {"url": item.get("URL", "N/A URL")},
+            }
+            page_contents.append(url_block)
+
         return page_contents
 
 
