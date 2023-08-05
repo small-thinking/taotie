@@ -57,19 +57,24 @@ class NotionReporter(BaseReporter):
             4. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
             5. Generate the description in an attractive way, so that the readers will be willing to check the content.
             6. Rank by importance (e.g. whether has image) and keep AT MOST the top 10 items based on the recommendation strength.
-            7. Add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
+            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Summary", "Reason", "URL"). Example:
 
-            Example items:
-            1.【★★★★★】TransformerOptimus/SuperAGI
-            这是一个用于构建和运行有用的自主智能体的Python项目。
-            推荐理由：自主性AI最新版本。该项目旨在创造一个可以解决朴实问题的自主智能体。
-            访问地址：https://github.com/TransformerOptimus/SuperAGI
-
-            2.【★★★★】LLM-ToolMaker
-            这个项目提出了一种名为LLMs As Tool Makers (LATM)的闭环框架，其中大型语言模型(LLMs)可以作为工具制造者为解决问题创造自己的可重用工具。
-            推荐理由：开放框架 。该项目旨在创造一个可以使用外部工具的自主智能体。
-            访问地址：https://github.com/ctlllll/LLM-ToolMaker
-
+            {{
+                "results": [
+                    {{
+                        "Title": "【★★★★★】TransformerOptimus/SuperAGI",
+                        "Summary": "这是一个用于构建和运行有用的自主智能体的Python项目。",
+                        "Reason": "自主性AI最新版本。该项目旨在创造一个可以解决朴实问题的自主智能体。",
+                        "URL": "https://github.com/TransformerOptimus/SuperAGI",
+                    }},
+                    {{
+                        "Title": "【★★★★】LLM-ToolMaker",
+                        "Summary": "这个项目提出了一种名为LLMs As Tool Makers (LATM)的闭环框架，其中大型语言模型(LLMs)可以作为工具制造者为解决问题创造自己的可重用工具。",
+                        "Reason": "开放框架。该项目旨在创造一个可以使用外部工具的自主智能体。",
+                        "URL": "https://github.com/ctlllll/LLM-ToolMaker",
+                    }}
+                ]
+            }}
             """
         else:
             self.report_prompt = f"""
@@ -83,19 +88,23 @@ class NotionReporter(BaseReporter):
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
                 Make the summary as informative as possible.
             6. Rank by importance (e.g. authors or affiliation) and only keep AT MOST the top 10 items based on the recommendation strength.
-            7. Add an end note indicate this report is 小思辩饕餮(https://github.com/small-thinking/taotie)创作。在公众号回复”报告“查看最新报告。
-
-            Example items:
-            1.【★★★★★】Training Language Models with Language Feedback at Scale
-            本文介绍了一种新的语言反馈模型训练方法ILF，利用更具信息量的语言反馈来解决预训练语言模型生成的文本与人类偏好不一致的问题。
-            推荐理由：创新的训练方法。
-            访问地址：http://arxiv.org/abs/2303.16755v2
-
-            2.【★★★★】Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting
-            本文研究了大型语言模型（LLMs）在链式思考推理（CoT）中的解释不忠实问题，揭示了CoT解释可能受到多种因素的影响。
-            推荐理由：深入研究LLMs的行为。
-            访问地址：http://arxiv.org/abs/2305.04388v1
-
+            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Summary", "Reason", "URL"). Example:
+            {{
+                "results": [
+                    {{
+                        "Title": "Training Language Models with Language Feedback at Scale",
+                        "Summary": "本文介绍了一种新的语言反馈模型训练方法ILF，利用更具信息量的语言反馈来解决预训练语言模型生成的文本与人类偏好不一致的问题。",
+                        "Reason": "新的语言反馈模型训练方法。",
+                        "URL": "https://arxiv.org/abs/2303.16755v2",
+                    }},
+                    {{
+                        "Title": "Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting",
+                        "Summary": "本文研究了大型语言模型（LLMs）在链式思考推理（CoT）中的解释不忠实问题，揭示了CoT解释可能受到多种因素的影响。",
+                        "Reason": "深入研究LLMs的行为。",
+                        "URL": "http://arxiv.org/abs/2305.04388v1",
+                    }}
+                ]
+            }}
             """
 
     async def _connect(self):
@@ -114,7 +123,7 @@ class NotionReporter(BaseReporter):
         self.logger.output(f"Number docs retrieved: {len(doc_list)}\n")
         self.logger.output(json.dumps(doc_list, indent=2))
         report = await self._generate_report(doc_list)
-        self.logger.output(f"{report}\n", color=Fore.BLUE)
+        self.logger.output(f"Report: {report}\n", color=Fore.BLUE)
         return report
 
     async def _retrieve_data(self) -> List[Dict[str, Any]]:
