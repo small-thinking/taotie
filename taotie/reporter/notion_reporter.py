@@ -1,6 +1,5 @@
 """Notion reporter will check the gathered knowledge in notion and generate the text report for the AI related contents.
 """
-import asyncio
 import json
 import os
 from datetime import date, datetime, timedelta
@@ -50,25 +49,27 @@ class NotionReporter(BaseReporter):
             Please generate a report that will be published by the WECHAT BLOG based on the json string in the triple quotes.
             Follow the following rules STRICTLY:
             1. Summarize in {language} and at the beginning give a short overall summary of the repos in this report.
-            2. Skip the items that are not relevant to AI or the topics of {self.topic_filters}.
+            2. REMOVE the items that are NOT RELATED to AI or the topics of {self.topic_filters}.
             3. Generate each item as an individual section, include the URL in each of the item, and \
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
                 Make the summary as informative as possible.
             4. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
             5. Generate the description in an attractive way, so that the readers will be willing to check the content.
             6. Rank by importance (e.g. whether has image) and keep AT MOST the top 10 items based on the recommendation strength.
-            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Summary", "Reason", "URL"). Example:
+            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Images", "Summary", "Reason", "URL"). Example:
 
             {{
                 "results": [
                     {{
                         "Title": "【★★★★★】TransformerOptimus/SuperAGI",
+                        "Images": ["url1", "url2"],
                         "Summary": "这是一个用于构建和运行有用的自主智能体的Python项目。",
                         "Reason": "自主性AI最新版本。该项目旨在创造一个可以解决朴实问题的自主智能体。",
                         "URL": "https://github.com/TransformerOptimus/SuperAGI",
                     }},
                     {{
                         "Title": "【★★★★】LLM-ToolMaker",
+                        "Images": ["url1"],
                         "Summary": "这个项目提出了一种名为LLMs As Tool Makers (LATM)的闭环框架，其中大型语言模型(LLMs)可以作为工具制造者为解决问题创造自己的可重用工具。",
                         "Reason": "开放框架。该项目旨在创造一个可以使用外部工具的自主智能体。",
                         "URL": "https://github.com/ctlllll/LLM-ToolMaker",
@@ -81,24 +82,26 @@ class NotionReporter(BaseReporter):
             Please generate a report of the paper summary that will be published by the WECHAT BLOG based on the json string in the triple quotes.
             Follow the following rules STRICTLY:
             1. Summarize in {language} and at the beginning give a short overall summary of the repos in this report.
-            2. SKIP the items that are not relevant to AI or the topics of {self.topic_filters}.
+            2. REMOVE the items that are NOT RELATED to AI or the topics of {self.topic_filters}.
             3. use the paper name as the title for each item. Then followed by a short overall summary of the paper.
             4. Emphasis the authors or afflications if they famous.
             5. Generate each item as an individual section, include the URL in each of the item, and \
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
                 Make the summary as informative as possible.
             6. Rank by importance (e.g. authors or affiliation) and only keep AT MOST the top 10 items based on the recommendation strength.
-            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Summary", "Reason", "URL"). Example:
+            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", “Images", "Summary", "Reason", "URL"). Example:
             {{
                 "results": [
                     {{
                         "Title": "Training Language Models with Language Feedback at Scale",
+                        "Images": ["url1", "url2"],
                         "Summary": "本文介绍了一种新的语言反馈模型训练方法ILF，利用更具信息量的语言反馈来解决预训练语言模型生成的文本与人类偏好不一致的问题。",
                         "Reason": "新的语言反馈模型训练方法。",
                         "URL": "https://arxiv.org/abs/2303.16755v2",
                     }},
                     {{
                         "Title": "Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting",
+                        "Images": ["url1"],
                         "Summary": "本文研究了大型语言模型（LLMs）在链式思考推理（CoT）中的解释不忠实问题，揭示了CoT解释可能受到多种因素的影响。",
                         "Reason": "深入研究LLMs的行为。",
                         "URL": "http://arxiv.org/abs/2305.04388v1",
@@ -127,6 +130,19 @@ class NotionReporter(BaseReporter):
         return report
 
     async def _retrieve_data(self) -> List[Dict[str, Any]]:
+        """Retrieve data from Notion database.
+
+        This queries the configured Notion database to get pages created in the
+        specified date range, filtered by type and topic as configured.
+
+        The data for each page is returned as a list of dictionaries containing
+        title, summary, and URL.
+
+        Returns:
+            List[Dict]: List of page data dicts with title, summary, and URL
+
+        """
+
         # Get the date range.
         timezone = pytz.timezone("America/Los_Angeles")
         start_date = datetime.now(timezone) - timedelta(days=self.date_lookback)
@@ -179,10 +195,24 @@ class NotionReporter(BaseReporter):
             else:
                 self.logger.warning("No url found.")
             summary = item["properties"]["Summary"]["rich_text"][0]["plain_text"]
+            # Get the page id and retrieve the content of the page to get the images.
+            page_id = item["id"]
+            image_urls = []
+            page_response = await self.notion.blocks.children.list(block_id=page_id)
+            for block in page_response["results"]:
+                if block["type"] == "image":
+                    image_blob = block["image"]
+                    if "external" in block["image"]:
+                        url = image_blob["external"]["url"]
+                    else:
+                        url = image_blob["file"]["url"]
+                    image_urls.append(url)
+                    break
             doc = {
                 "Title": item["properties"]["Title"]["title"][0]["plain_text"],
                 "Summary": summary[:300],
                 "url": url,
+                "images": image_urls,
             }
             doc_list.append(doc)
         return doc_list

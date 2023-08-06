@@ -258,19 +258,38 @@ class NotionStorage(Storage):
             # 1. Add Title as a heading_2
             title_block = {
                 "object": "block",
-                "type": "heading_2",
-                "heading_2": {
+                "type": "heading_1",
+                "heading_1": {
                     "rich_text": [
                         {
                             "type": "text",
-                            "text": {"content": item.get("Title", "N/A Title")},
+                            "text": {
+                                "content": item.get("Title", "N/A Title").split("/")[-1]
+                            },
                         }
                     ]
                 },
             }
             page_contents.append(title_block)
 
-            # 2. Add Summary as a paragraph
+            # 2. Add Images if any
+            image_urls = item.get("Images", [])
+            if image_urls:
+                page_contents.extend(
+                    [
+                        {
+                            "object": "block",
+                            "type": "image",
+                            "image": {
+                                "type": "external",
+                                "external": {"url": image_url},
+                            },
+                        }
+                        for image_url in image_urls
+                    ]
+                )
+
+            # 3. Add Summary as a paragraph
             summary_block = {
                 "object": "block",
                 "type": "paragraph",
@@ -285,7 +304,7 @@ class NotionStorage(Storage):
             }
             page_contents.append(summary_block)
 
-            # 3. Add Reason as a second paragraph
+            # 4. Add Reason as a second paragraph
             reason_block = {
                 "object": "block",
                 "type": "paragraph",
@@ -293,16 +312,21 @@ class NotionStorage(Storage):
                     "rich_text": [
                         {
                             "type": "text",
-                            "text": {
-                                "content": "推荐理由: " + item.get("Reason", "N/A Reason")
+                            "text": {"content": "推荐理由: "},
+                            "annotations": {
+                                "bold": True,
                             },
-                        }
+                        },
+                        {
+                            "type": "text",
+                            "text": {"content": item.get("Reason", "N/A Reason")},
+                        },
                     ]
                 },
             }
             page_contents.append(reason_block)
 
-            # 4. Add URL as a URL
+            # 5. Add URL as a URL
             url_block = {
                 "object": "block",
                 "type": "bookmark",
