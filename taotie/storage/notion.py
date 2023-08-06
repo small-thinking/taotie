@@ -354,7 +354,7 @@ class NotionStorage(Storage):
                 "bookmark": {"url": item.get("URL", "N/A URL")},
             }
             page_contents.append(url_block)
-        # page_contents.append(back_link_blob)
+        page_contents.append(back_link_blob)
         return page_contents
 
 
