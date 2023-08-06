@@ -253,6 +253,27 @@ class NotionStorage(Storage):
 
     async def _create_page_block_for_report(self, items: Dict[str, Any]):
         page_contents = []
+        # Add back link to the main page with URL https://yexi-space.simple.ink/.
+        back_link_blob = {
+            "object": "block",
+            "type": "paragraph",
+            "paragraph": {
+                "rich_text": [
+                    {
+                        "type": "text",
+                        "text": {"content": "Back to "},
+                    },
+                    {
+                        "type": "text",
+                        "text": {
+                            "content": "Yexi's TechPhilos",
+                            "link": {"url": "https://yexi-space.simple.ink"},
+                        },
+                    },
+                ]
+            },
+        }
+        page_contents.append(back_link_blob)
         results: List[Dict[str, Any]] = items["results"]
         for item in results:
             # 1. Add Title as a heading_2
@@ -333,7 +354,7 @@ class NotionStorage(Storage):
                 "bookmark": {"url": item.get("URL", "N/A URL")},
             }
             page_contents.append(url_block)
-
+        # page_contents.append(back_link_blob)
         return page_contents
 
 
