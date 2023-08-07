@@ -294,7 +294,7 @@ class NotionStorage(Storage):
             page_contents.append(title_block)
 
             # 2. Add Images if any
-            image_urls = item.get("Images", [])
+            image_urls = item.get("Image URLs", [])
             if image_urls:
                 page_contents.extend(
                     [
@@ -331,13 +331,13 @@ class NotionStorage(Storage):
                 "type": "paragraph",
                 "paragraph": {
                     "rich_text": [
-                        {
-                            "type": "text",
-                            "text": {"content": "推荐理由: "},
-                            "annotations": {
-                                "bold": True,
-                            },
-                        },
+                        # {
+                        #     "type": "text",
+                        #     "text": {"content": "推荐理由: "},
+                        #     "annotations": {
+                        #         "bold": True,
+                        #     },
+                        # },
                         {
                             "type": "text",
                             "text": {"content": item.get("Reason", "N/A Reason")},
