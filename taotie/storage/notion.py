@@ -331,13 +331,13 @@ class NotionStorage(Storage):
                 "type": "paragraph",
                 "paragraph": {
                     "rich_text": [
-                        {
-                            "type": "text",
-                            "text": {"content": "推荐理由: "},
-                            "annotations": {
-                                "bold": True,
-                            },
-                        },
+                        # {
+                        #     "type": "text",
+                        #     "text": {"content": "推荐理由: "},
+                        #     "annotations": {
+                        #         "bold": True,
+                        #     },
+                        # },
                         {
                             "type": "text",
                             "text": {"content": item.get("Reason", "N/A Reason")},
