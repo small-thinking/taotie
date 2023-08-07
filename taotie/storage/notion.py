@@ -294,7 +294,7 @@ class NotionStorage(Storage):
             page_contents.append(title_block)
 
             # 2. Add Images if any
-            image_urls = item.get("Images", [])
+            image_urls = item.get("Image URLs", [])
             if image_urls:
                 page_contents.extend(
                     [
