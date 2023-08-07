@@ -288,7 +288,7 @@ def construct_knowledge_graph(triplets: List[str], logger: Optional[Logger] = No
         graph.add_edge(str(subj), str(obj), label=str(pred.split("/")[-1]))
 
     # Configure the font
-    plt.rcParams["font.family"] = "STKaiti"
+    plt.rcParams["font.family"] = "Arial Unicode MS"
     plt.rcParams[
         "axes.unicode_minus"
     ] = False  # to solve the problem of minus sign '-' shows as a square
