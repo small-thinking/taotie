@@ -38,7 +38,7 @@ def parse_args(parser: argparse.ArgumentParser):
         help="Model type for report",
     )
     report_parser.add_argument(
-        "--language", type=str, default="Chinese", help="Language for report"
+        "--language", type=str, default="English", help="Language for report"
     )
 
     # Sub-parser for delete key
