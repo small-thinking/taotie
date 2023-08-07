@@ -38,7 +38,7 @@ def parse_args(parser: argparse.ArgumentParser):
         help="Model type for report",
     )
     report_parser.add_argument(
-        "--language", type=str, default="Chinese", help="Language for report"
+        "--language", type=str, default="English", help="Language for report"
     )
 
     # Sub-parser for delete key
@@ -68,7 +68,9 @@ async def run_notion_reporter(args: argparse.Namespace):
         language=args.language,
     )
     database_id = os.environ.get("NOTION_REPORT_DATABASE_ID", None)
-    await reporter.distill(database_id=database_id, type=type_filters[0])
+    await reporter.distill(
+        database_id=database_id, type=type_filters[0], language=args.language
+    )
 
 
 if __name__ == "__main__":
