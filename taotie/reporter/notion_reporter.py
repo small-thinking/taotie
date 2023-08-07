@@ -53,10 +53,9 @@ class NotionReporter(BaseReporter):
             3. Generate each item as an individual section, include the URL in each of the item, and \
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
                 Make the summary as informative as possible.
-            4. If the item is about a paper, please emphasis the afflication of the authors if it is famous.
-            5. Generate the description in an attractive way, so that the readers will be willing to check the content.
-            6. Rank by importance (e.g. whether has image) and keep AT MOST the top 10 items based on the recommendation strength.
-            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Image URLs", "Summary", "Reason", "URL"). Example:
+            4. Generate the description in an attractive way, so that the readers will be willing to check the content.
+            5. Rank by importance (e.g. whether has image) and keep AT MOST the top 10 items based on the recommendation strength.
+            6. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", "Image URLs", "Summary", "Reason", "URL"). Example:
 
             {{
                 "results": [
@@ -83,10 +82,13 @@ class NotionReporter(BaseReporter):
             Follow the following rules STRICTLY:
             1. Summarize in {language} and at the beginning give a short overall summary of the repos in this report.
             2. REMOVE the items that are NOT RELATED to AI or the topics of {self.topic_filters}.
-            3. Use the paper name as the title for each item. Then followed by a short overall summary of the paper.
-            4. Emphasis the authors or afflications if they famous.
-            5. Rank by importance (e.g. authors or affiliation) and only keep AT MOST the top 10 items based on the recommendation strength.
-            6. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", “Image URLs", "Summary", "Reason", "URL"). Example:
+            3. Generate each item as an individual section, include the URL in each of the item, and \
+                including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
+                Make the summary as informative as possible.
+            4. Use the paper name as the title for each item. Then followed by a short overall summary of the paper.
+            5. Emphasis the authors or afflications if they famous.
+            6. Rank by importance (e.g. authors or affiliation) and only keep AT MOST the top 10 items based on the recommendation strength.
+            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", “Image URLs", "Summary", "Reason", "URL"). Example:
             {{
                 "results": [
                     {{
