@@ -266,7 +266,7 @@ class NotionStorage(Storage):
                     {
                         "type": "text",
                         "text": {
-                            "content": "Yexi's TechPhilos",
+                            "content": "Yexi's TechTao",
                             "link": {"url": "https://yexi-space.simple.ink"},
                         },
                     },
