@@ -207,6 +207,10 @@ class NotionReporter(BaseReporter):
                         image_url = image_blob["file"]["url"]
                     image_urls.append(image_url)
                     break
+                elif block["type"] == "embed":
+                    image_url = block["embed"]["url"]
+                    image_urls.append(image_url)
+                    break
             doc = {
                 "Title": item["properties"]["Title"]["title"][0]["plain_text"],
                 "Summary": summary[:300],
