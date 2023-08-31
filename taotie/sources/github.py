@@ -93,11 +93,11 @@ class GithubTrends(BaseSource):
                             repo_star=repo_meta["repo_star"],
                             repo_fork=repo_meta["repo_fork"],
                         )
+                        res = await self._send_data(github_event)
+                        if res:
+                            self.logger.debug(f"{idx}: {github_event.encode()}")
                     except:
                         self.logger.error(f"Repo meta: {repo_meta}")
-                    res = await self._send_data(github_event)
-                    if res:
-                        self.logger.debug(f"{idx}: {github_event.encode()}")
                     await asyncio.sleep(10)
                 self.logger.info(
                     f"Github event checked. Will check again in {self.check_interval} seconds."
