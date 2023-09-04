@@ -84,7 +84,16 @@ class BaseReporter(ABC):
                     {},
                 )
             )
-            await storage.save(data, database_id=database_id, doc_type="report")
+            image_files = []
+            for entry in result_json["results"]:
+                if "Image URLs" not in entry:
+                    continue
+                for image_url in entry["Image URLs"]:
+                    image_files.append(image_url)
+                    break  # only pick one image from each entry
+            await storage.save(
+                data, image_urls=image_files, database_id=database_id, doc_type="report"
+            )
 
     @abstractmethod
     async def _distill(self) -> str:
