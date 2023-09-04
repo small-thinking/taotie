@@ -123,7 +123,10 @@ class NotionStorage(Storage):
             children = await self._create_page_block_for_report(item["content"])
         else:
             children = await self._create_page_blocks(
-                item, processed_item, image_files, truncate
+                raw_info=item,
+                processed_info=processed_item,
+                image_urls=image_files,
+                truncate=truncate,
             )
 
         response = await self.notion.pages.create(
@@ -267,7 +270,7 @@ class NotionStorage(Storage):
                         "type": "text",
                         "text": {
                             "content": "Yexi's TechTao",
-                            "link": {"url": "https://yexi-space.simple.ink"},
+                            "link": {"url": "https://techtao.super.site/"},
                         },
                     },
                 ]
@@ -331,13 +334,6 @@ class NotionStorage(Storage):
                 "type": "paragraph",
                 "paragraph": {
                     "rich_text": [
-                        # {
-                        #     "type": "text",
-                        #     "text": {"content": "推荐理由: "},
-                        #     "annotations": {
-                        #         "bold": True,
-                        #     },
-                        # },
                         {
                             "type": "text",
                             "text": {"content": item.get("Reason", "N/A Reason")},
