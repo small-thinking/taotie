@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 from taotie.consumer.base import Consumer
 from taotie.message_queue import MessageQueue
-from taotie.utils import Logger
+from taotie.utils.utils import Logger
 
 
 class Gatherer:

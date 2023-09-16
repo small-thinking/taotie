@@ -9,7 +9,7 @@ from tweepy import StreamingClient, StreamRule  # type: ignore
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource
-from taotie.utils import Logger, get_datetime, load_dotenv
+from taotie.utils.utils import Logger, get_datetime, load_dotenv
 
 
 class TwitterSubscriber(BaseSource):

@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue, SimpleMessageQueue
 from taotie.sources.base import BaseSource
-from taotie.utils import get_datetime
+from taotie.utils.utils import get_datetime
 
 
 class Arxiv(BaseSource):
@@ -35,7 +35,7 @@ class Arxiv(BaseSource):
             author for affiliation in author_dict for author in author_dict[affiliation]
         ]
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
-        self.check_interval = kwargs.get("check_interval", 3600 * 12)
+        self.check_interval = kwargs.get("check_interval", 3600 * 3)
         self.logger.info(f"Arxiv data source initialized.")
 
     async def _cleanup(self):

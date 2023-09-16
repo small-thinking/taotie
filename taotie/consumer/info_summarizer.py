@@ -10,7 +10,7 @@ from colorama import Fore
 
 from taotie.consumer.base import Consumer
 from taotie.storage.base import Storage
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 class InfoSummarizer(Consumer):
@@ -63,7 +63,7 @@ class InfoSummarizer(Consumer):
             }}
             """
         self.max_tokens = kwargs.get("max_tokens", 3000)
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k-0613")
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k")
         self.logger.debug("PrintConsumer initialized.")
 
     async def _process(self, messages: List[Dict[str, Any]]) -> None:

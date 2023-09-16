@@ -1,11 +1,11 @@
 """Test the utils.
-Run this test with command: pytest taotie/tests/test_utils.py
+Run this test with command: pytest taotie/tests/utils/test_utils.py
 """
 from unittest.mock import patch
 
 import pytest
 
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 @pytest.mark.parametrize(
@@ -75,7 +75,7 @@ def test_parse_json(input, expected):
     "model_type, prompt, content, max_tokens, temperature, expected_result",
     [
         (
-            "gpt-3.5-turbo-16k-0613",
+            "gpt-3.5-turbo-16k",
             "Please summarize the following:",
             "Hello, my name is John and I am 30 years old.",
             50,
@@ -83,7 +83,7 @@ def test_parse_json(input, expected):
             "John is a 30 year old.",
         ),
         (
-            "gpt-3.5-turbo-16k-0613",
+            "gpt-3.5-turbo-16k",
             "Please generate a response:",
             "How are you?",
             20,
@@ -152,7 +152,7 @@ def test_chat_completion(
 async def test_text_to_triplets(text_summary, metadata, expected_result):
     load_dotenv()
     logger = Logger("test_text_to_triplets")
-    with patch("taotie.utils.chat_completion") as mock_chat_completion:
+    with patch("taotie.utils.utils.chat_completion") as mock_chat_completion:
         mock_chat_completion.return_value = json.dumps({"triplets": expected_result})
         result = await text_to_triplets(text_summary, metadata, logger)
         assert result == expected_result
@@ -234,12 +234,12 @@ async def test_extract_representative_image(
     with patch("requests.get") as mock_get:
         mock_get.return_value.text = readme_response
         mock_get.return_value.status_code = 200
-        with patch("taotie.utils.chat_completion") as mock_chat_completion:
+        with patch("taotie.utils.utils.chat_completion") as mock_chat_completion:
             mock_chat_completion.return_value = chat_completion_response
-            with patch("taotie.utils.check_url_exists") as mock_check_url_exists:
+            with patch("taotie.utils.utils.check_url_exists") as mock_check_url_exists:
                 mock_check_url_exists.return_value = check_url_exists_response
                 with patch(
-                    "taotie.utils.save_image_to_imgur"
+                    "taotie.utils.utils.save_image_to_imgur"
                 ) as mock_save_image_to_imgur:
                     mock_save_image_to_imgur.return_value = expected_result
                     result = await extract_representative_image(
