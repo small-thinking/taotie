@@ -21,7 +21,7 @@ class GithubTrends(BaseSource):
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.url = "https://github.com/trending?since=daily.json"
-        self.check_interval = kwargs.get("check_interval", 3600 * 12)
+        self.check_interval = kwargs.get("check_interval", 3600 * 3)
         self.readme_truncate_size = kwargs.get("readme_truncate_size", 2000)
         self.logger.info(f"Github event initialized.")
 

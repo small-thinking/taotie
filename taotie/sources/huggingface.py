@@ -19,7 +19,7 @@ class HuggingFaceLeaderboard(BaseSource):
     def __init__(self, sink: MessageQueue, verbose: bool = False, **kwargs):
         BaseSource.__init__(self, sink=sink, verbose=verbose, **kwargs)
         self.url = "https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard"
-        self.check_interval = kwargs.get("check_interval", 3600 * 12)
+        self.check_interval = kwargs.get("check_interval", 3600 * 3)
         self.logger.info(f"HuggingFace event initialized.")
 
     async def _cleanup(self):

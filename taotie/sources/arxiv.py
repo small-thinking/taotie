@@ -35,7 +35,7 @@ class Arxiv(BaseSource):
             author for affiliation in author_dict for author in author_dict[affiliation]
         ]
         self.days_lookback = int(kwargs.get("days_lookback", "90"))
-        self.check_interval = kwargs.get("check_interval", 3600 * 12)
+        self.check_interval = kwargs.get("check_interval", 3600 * 3)
         self.logger.info(f"Arxiv data source initialized.")
 
     async def _cleanup(self):

@@ -37,11 +37,12 @@ class NotionReporter(BaseReporter):
         self.date_lookback = max(0, date_lookback)
         self.type_filters = type_filters
         self.topic_filters = topic_filters
+        self.max_retrieve = kwargs.get("max_retrieve", 1000)
         # Model configs.
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k-0613")
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k")
         # Prompt.
         language = kwargs.get("language", "English")
         if "github-repo" in self.topic_filters:
@@ -86,9 +87,8 @@ class NotionReporter(BaseReporter):
                 including the strength of recommendation (draw 1-5 stars) and the reason to recommend. \
                 Make the summary as informative as possible.
             4. Use the paper name as the title for each item. Then followed by a short overall summary of the paper.
-            5. Emphasis the authors or afflications if they famous.
-            6. Rank by importance (e.g. authors or affiliation) and only keep AT MOST the top 10 items based on the recommendation strength.
-            7. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", “Image URLs", "Summary", "Reason", "URL"). Example:
+            5. Output the results as a JSON string which contains a list of items (with keys "Title", "Rating", “Image URLs", "Summary", "Reason", "URL"). Example:
+
             {{
                 "results": [
                     {{
@@ -182,6 +182,7 @@ class NotionReporter(BaseReporter):
         response = await self.notion.databases.query(
             database_id=self.knowledge_source_uri,
             filter=filter_params,
+            page_size=self.max_retrieve,
         )
 
         # Format the data.
@@ -237,7 +238,7 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 12000 if self.model_type == "gpt-3.5-turbo-16k-0613" else 7000
+        truncate_size = 12000 if self.model_type == "gpt-3.5-turbo-16k" else 7000
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
@@ -251,6 +252,6 @@ class NotionReporter(BaseReporter):
             prompt=self.report_prompt,
             content=content_prompt,
             max_tokens=max_tokens,
-            temperature=0.0,
+            temperature=0.5,
         )
         return result

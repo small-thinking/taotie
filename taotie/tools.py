@@ -34,11 +34,14 @@ def parse_args(parser: argparse.ArgumentParser):
     report_parser.add_argument(
         "--model-type",
         type=str,
-        default="gpt-3.5-turbo-16k-0613",
+        default="gpt-3.5-turbo-16k",
         help="Model type for report",
     )
     report_parser.add_argument(
         "--language", type=str, default="English", help="Language for report"
+    )
+    report_parser.add_argument(
+        "--max-retrieve", type=int, default=100, help="Max number of items to retrieve"
     )
 
     # Sub-parser for delete key
@@ -66,6 +69,7 @@ async def run_notion_reporter(args: argparse.Namespace):
         else os.environ.get("CANDIDATE_TAGS", "").split(","),
         model_type=args.model_type,
         language=args.language,
+        max_retrieve=args.max_retrieve,
     )
     database_id = os.environ.get("NOTION_REPORT_DATABASE_ID", None)
     await reporter.distill(
