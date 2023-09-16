@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Tuple
 
 from taotie.storage.notion import NotionStorage
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 class BaseReporter(ABC):

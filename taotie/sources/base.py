@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue
 from taotie.storage.memory import DedupMemory
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 class BaseSource(ABC):

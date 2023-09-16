@@ -4,7 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple
 
-from taotie.utils import Logger, load_dotenv
+from taotie.utils.utils import Logger, load_dotenv
 
 
 class Storage(ABC):

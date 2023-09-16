@@ -10,7 +10,7 @@ import pytz  # type: ignore
 from notion_client import AsyncClient
 
 from taotie.reporter.base_reporter import BaseReporter
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 class NotionReporter(BaseReporter):

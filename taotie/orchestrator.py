@@ -7,7 +7,7 @@ from typing import Dict
 
 from taotie.gatherer import Gatherer
 from taotie.sources.base import BaseSource
-from taotie.utils import Logger
+from taotie.utils.utils import Logger
 
 
 class Orchestrator:

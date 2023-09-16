@@ -10,7 +10,7 @@ from colorama import Fore
 
 from taotie.consumer.base import Consumer
 from taotie.storage.base import Storage
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 class InfoSummarizer(Consumer):

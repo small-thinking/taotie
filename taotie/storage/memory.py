@@ -7,7 +7,7 @@ from typing import Optional
 
 from redis import asyncio as aioredis  # type: ignore
 
-from taotie.utils import Logger, load_dotenv
+from taotie.utils.utils import Logger, load_dotenv
 
 
 class DedupMemory:

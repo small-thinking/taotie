@@ -14,7 +14,7 @@ from taotie.sources.http_service import HttpService
 from taotie.sources.twitter import TwitterSubscriber
 from taotie.storage.memory import DedupMemory
 from taotie.storage.notion import NotionStorage
-from taotie.utils import Logger, load_env
+from taotie.utils.utils import Logger, load_env
 
 
 def create_notion_summarizer(data_sources: str, twitter_rules: str):

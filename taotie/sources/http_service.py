@@ -14,7 +14,7 @@ from unstructured.partition.html import partition_html  # type: ignore
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue, SimpleMessageQueue
 from taotie.sources.base import BaseSource
-from taotie.utils import get_datetime
+from taotie.utils.utils import get_datetime
 
 
 class HttpService(BaseSource):

@@ -5,7 +5,7 @@ import asyncio
 import os
 
 from taotie.reporter.notion_reporter import NotionReporter
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 def parse_args(parser: argparse.ArgumentParser):

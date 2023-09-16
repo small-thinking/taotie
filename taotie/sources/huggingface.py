@@ -10,7 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from taotie.entity import Information
 from taotie.message_queue import MessageQueue
 from taotie.sources.base import BaseSource
-from taotie.utils import *
+from taotie.utils.utils import *
 
 
 class HuggingFaceLeaderboard(BaseSource):

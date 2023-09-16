@@ -8,7 +8,7 @@ from typing import List
 
 from redis import asyncio as aioredis  # type: ignore
 
-from taotie.utils import Logger
+from taotie.utils.utils import Logger
 
 
 class MessageQueue(ABC):
