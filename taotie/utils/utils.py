@@ -23,6 +23,7 @@ import requests  # type: ignore
 import retrying
 from colorama import Fore, ansi
 from dotenv import load_dotenv
+from flask import jsonify
 from rdflib import Graph, Namespace
 
 
@@ -175,153 +176,161 @@ class Logger:
 async def text_to_triplets(
     text_summary: str,
     metadata: Dict[str, Any],
-    logger: Logger,
+    logger: Optional[Logger] = None,
     model_type: str = "gpt-3.5-turbo-16k",
     max_tokens: int = 6000,
-) -> List[str]:
-    """Leverage prompt to use LLM to convert text summary to RDF triplets."""
-    metadata_str = "\n".join(f"{key}: {value}" for key, value in metadata.items())
-    metadata_str = metadata_str[:500]
-    text_summary = text_summary[:1500]
-    content = f"""
-    {text_summary}
-    {metadata_str}
-    """
-    content_type = "generic"
-    if "type" in metadata:
-        content_type = metadata["type"]
-
-    if content_type == "arxiv":
-        logger.info("Use arxiv prompt.")
-        prompt = f"""
-        Please convert the following information about a paper into triplets with the format "'subject' 'attribute' 'object'"? We want to follow the following rules:
-        1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. 'paper_title' 'has-author' 'John Dorr'.
-        2. We want to use the paper title as the main entity.
-        3. We want to include the triplets of the FIRST 2 authors and the LAST author, and link them to the paper title, e.g. '[paper_title]' 'has-author' '[Firstname Lastname]'.
-        4. Create triplets about the afflication of these authors, e.g. '[Firstname Lastname]' 'has-affiliation' '[affiliation]'.
-        5. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
-            Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
-            nlp, multi-modality. etc. For each tag triplet, use the format  '[paper_title]' 'has-concept' '[tag]'.
-        6. Please return a JSON where THERE IS A KEY "triplets" with a list of RDF triplets strings. \
-            The JSON response will be DIRECTLY feed to a downstream program to parse the json.
-
-        """
-    elif content_type == "github-repo":
-        logger.info("Use github-repo prompt.")
-        prompt = f"""
-        Please convert the following information about a github repository into triplets with the format "'subject' 'attribute' 'object'" \
-            We want to follow the following rules:
-        1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. '[repo_name]' 'has-author' 'John Dorr'.
-        2. We want to use the repo name as the main entity.
-        3. IF there is any information about the language, we would want to include a triplet, '[repo_name]' 'implemented-in' '[language]'.
-        4. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
-            Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
-        5. Please return a JSON where THERE IS A KEY "triplets" with a list of RDF triplets strings. \
-            The JSON response will be DIRECTLY feed to a downstream program to parse the json.
-        """
-    else:  # generic prompt to generate the triplets
-        logger.info("Use generic prompt.")
-        prompt = f"""
-        Please convert the following information into triplets with the format "'subject' 'attribute' 'object'"? \
-            We want to follow the following rules:
-        1. We need to WRAP EVERY part in the triplet with the SINGLE quotes, e.g. 'paper_title' 'has-author' 'John Dorr'.
-        2. We want to find out the title and use it as the main entity.
-        3. We want to include the triplets of the FIRST 2 authors and the LAST author, and link them to the paper title, e.g. '[paper_title]' 'has-author' '[Firstname Lastname]'.
-        4. If there is information about the affinitation, create triplets about the afflication of these authors, e.g. '[Firstname Lastname]' 'has-affiliation' '[affiliation]'.
-        5. Please represent the CORE concepts as triplets that you think is valuable to store in the knowledge graph. \
-            Add AT LEAST 3 and AT MOST 8 tags with common words based on what the abstract described. For example, deep-learning, computer-vision, \
-        6. Please return a JSON where THERE IS A KEY "triplets" with a list of RDF triplets strings. \
-        The JSON response will be DIRECTLY feed to a downstream program to parse the json.
-        """
-
+):
+    if not logger:
+        logger = Logger(os.path.basename(__file__))
+    load_env()
     # Call OpenAPI gpt-3.5-turbo-16k with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
     openai.api_key = os.getenv("OPENAI_API_KEY")
-    result = chat_completion(
-        model_type=model_type,
-        prompt=prompt,
-        content=content,
-        max_tokens=max_tokens,
-        temperature=0.0,
-    )
-    json_blob = json.loads(result)
-    rdf_triplets = json_blob.get("triplets", [])
-    # LLM may generate each triplets as a list instead of a string.
-    processed_triplets = []
-    for triplet in rdf_triplets:
-        if isinstance(triplet, list):
-            triplet = " ".join(triplet[:3])
-        processed_triplets.append(triplet)
-    if logger:
-        logger.output(f"RDF triplets: {rdf_triplets}\n", color=Fore.BLUE)
-    return processed_triplets
+    if not text_summary:
+        return jsonify({"error": "No input provided"}), 400
+
+    metadata_str = "\n".join(f"{key}: {value}" for key, value in metadata.items())
+    metadata_str = metadata_str[:500]
+    text_summary = text_summary[:1500]
+
+    function_description = """
+    Generate a knowledge graph with entities and relationships.
+    Use the colors to help differentiate between different node or edge types/categories.
+    Please use light color for the nodes so the label can be clearly visible.
+    """
+    # Always provide light pastel colors that work well with black font.
+    succeeded = False
+    while not succeeded:
+        completion = openai.ChatCompletion.create(
+            model=model_type,
+            max_tokens=max_tokens,
+            temperature=0.1,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""
+                        Please generate a brief yet comprehensive knowledge graph with the information:
+                        {text_summary}
+                        {metadata_str}
+                    """,
+                }
+            ],
+            functions=[
+                {
+                    "name": "knowledge_graph",
+                    "description": function_description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "metadata": {
+                                "type": "object",
+                                "properties": {
+                                    "createdDate": {"type": "string"},
+                                    "lastUpdated": {"type": "string"},
+                                    "description": {"type": "string"},
+                                },
+                            },
+                            "nodes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {"type": "string"},
+                                        "label": {"type": "string"},
+                                        "type": {"type": "string"},
+                                        "color": {
+                                            "type": "string"
+                                        },  # Added color property
+                                        "properties": {
+                                            "type": "object",
+                                            "description": "Additional attributes for the node",
+                                        },
+                                    },
+                                    "required": [
+                                        "id",
+                                        "label",
+                                        "type",
+                                        "color",
+                                    ],  # Added color to required
+                                },
+                            },
+                            "edges": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "from": {"type": "string"},
+                                        "to": {"type": "string"},
+                                        "relationship": {"type": "string"},
+                                        "direction": {"type": "string"},
+                                        "color": {
+                                            "type": "string"
+                                        },  # Added color property
+                                        "properties": {
+                                            "type": "object",
+                                            "description": "Additional attributes for the edge",
+                                        },
+                                    },
+                                    "required": [
+                                        "from",
+                                        "to",
+                                        "relationship",
+                                        "color",
+                                    ],  # Added color to required
+                                },
+                            },
+                        },
+                        "required": ["nodes", "edges"],
+                    },
+                }
+            ],
+            function_call={"name": "knowledge_graph"},
+        )
+
+        response_data = completion.choices[0]["message"]["function_call"]["arguments"]
+
+        try:
+            triplets = json.loads(response_data)
+            succeeded = True
+        except json.decoder.JSONDecodeError:
+            print("error")
+
+    return triplets
 
 
-def construct_knowledge_graph(triplets: List[str], logger: Optional[Logger] = None):
+def construct_knowledge_graph(triplets, logger: Optional[Logger] = None) -> str:
     if not logger:
         logger = Logger(os.path.basename(__file__))
 
     is_docker = os.getenv("IS_DOCKER", False)
-    platform = "mac" if sys.platform.startswith("darwin") else "linux"
-    # Create a Graph and a namespace
-    knowledge_graph = Graph()
-    n = Namespace("")
-    # Create triplets
-    for t in triplets:
-        separator = " " if "' '" not in t else "' '"
-        try:
-            subj, pred, obj = t.split(separator)
-            subj, pred, obj = (
-                subj.replace("'", ""),
-                pred.replace("'", ""),
-                obj.replace("'", ""),
-            )
-            knowledge_graph.add((n[subj], n[pred], n[obj]))
-        except Exception:
-            logger.warning(f"Failed to parse triplet: {t}, skip this one.")
-            continue
 
-    # Create a Networkx Graph and visualize it
-    graph = nx.DiGraph()
-    for subj, pred, obj in knowledge_graph:  # type: ignore
-        graph.add_edge(str(subj), str(obj), label=str(pred.split("/")[-1]))
+    G = nx.DiGraph()
+    for node in triplets["nodes"]:
+        G.add_node(node["id"], label=node["label"], color=node["color"])
 
-    # Configure the font
+    for edge in triplets["edges"]:
+        G.add_edge(
+            edge["from"], edge["to"], label=edge["relationship"], color=edge["color"]
+        )
+
+    # Configure the font for Unicode
     plt.rcParams["font.family"] = "Arial Unicode MS"
-    plt.rcParams[
-        "axes.unicode_minus"
-    ] = False  # to solve the problem of minus sign '-' shows as a square
+    plt.rcParams["axes.unicode_minus"] = False
 
-    pos = nx.spring_layout(graph, k=100)
-    node_labels = {n: n for n in graph.nodes}
-    edge_labels = {(u, v): d["label"] for u, v, d in graph.edges(data=True)}
-    font_size = 8
-    # Draw the Networkx Graph
-    nx.draw_networkx_edge_labels(
-        graph,
-        pos,
-        edge_labels=edge_labels,
-        font_size=font_size,
-    )
-    nx.draw_networkx_labels(
-        graph,
-        pos,
-        labels=node_labels,
-        font_size=font_size,
-        font_color="red",
-        verticalalignment="center",
-    )
+    pos = nx.spring_layout(G, k=0.5, iterations=50)
+    node_labels = {n: G.nodes[n]["label"] for n in G.nodes()}
+    edge_labels = nx.get_edge_attributes(G, "label")
 
     nx.draw(
-        graph,
+        G,
         pos,
         with_labels=False,
-        font_size=font_size,
-        node_color="none",
-        node_shape="s",
+        node_color=[nx.get_node_attributes(G, "color")[n] for n in G.nodes()],
     )
-    # Save the image to a file
+    nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=8, font_color="red")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
+
     rnd = random.randint(0, 1000000)
     knowledge_graph_image_path = f"knowledge_graph_{rnd}.png"
     if is_docker:
@@ -330,10 +339,10 @@ def construct_knowledge_graph(triplets: List[str], logger: Optional[Logger] = No
         )
         if not os.path.exists("/app/images/knowledge_graph/"):
             os.makedirs("/app/images/knowledge_graph/")
-    plt.savefig(knowledge_graph_image_path)
+
+    plt.savefig(f"{knowledge_graph_image_path}")
     plt.clf()
     logger.info(f"Knowledge graph image saved to {knowledge_graph_image_path}")
-    # Return the file path
     return knowledge_graph_image_path
 
 
