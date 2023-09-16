@@ -152,9 +152,7 @@ async def test_text_to_triplets(
 ):
     logger = Logger("test_logger")
     with patch("taotie.utils.utils.chat_completion") as mock_chat_completion:
-        #         mock_chat_completion.return_value = json.dumps({"triplets": expected_result})
-        #         result = await text_to_triplets(text_summary, metadata, logger)
-        #         assert result == expected_result
+        mock_chat_completion.return_value = json.dumps({"triplets": expected_output})
         result = await text_to_triplets(
             text_summary, metadata, logger, model_type, max_tokens
         )
