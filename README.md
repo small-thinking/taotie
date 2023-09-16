@@ -20,9 +20,18 @@ Here's an overview of TaoTie's architecture:
 </p>
 
 ## Example
+
 Here's an example of how to use TaoTie to subscribe to Twitter, GitHub, and HTTP sources, summarize the information using an LLM agent, and store the summaries in Notion.
 
 The example code can be found in [examples/summarize_to_notion/example.py](examples/summarize_to_notion/example.py).
+
+A website backed by Taotie can be seen from https://techtao.super.site/.
+
+<p align="center">
+    <img src="./images/website.png" alt="drawing"/>
+    <br>The blog website backed by TaoTie
+</p>
+
 
 ### 1. Set up your environment
 
