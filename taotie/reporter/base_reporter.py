@@ -90,15 +90,10 @@ class BaseReporter(ABC):
                     continue
                 for image_url in entry["Image URLs"]:
                     image_files.append(image_url)
-            if len(result_json["results"]) == 0:
-                self.logger.warning("No results found.")
-            else:
-                await storage.save(
-                    data,
-                    image_urls=image_files,
-                    database_id=database_id,
-                    doc_type="report",
-                )
+                    break  # only pick one image from each entry
+            await storage.save(
+                data, image_urls=image_files, database_id=database_id, doc_type="report"
+            )
 
     @abstractmethod
     async def _distill(self) -> str:
