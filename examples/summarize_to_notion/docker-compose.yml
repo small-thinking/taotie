@@ -6,7 +6,7 @@ services:
     image: redis:7.0.11
     ports:
       - "6379:6379"
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--client-output-buffer-limit", "pubsub 100mb 50mb 60"]
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--client-output-buffer-limit", "pubsub 200mb 100mb 60"]
     volumes:
       # mount the local Redis configuration file into the container
       - ./examples/summarize_to_notion/redis.conf:/usr/local/etc/redis/redis.conf

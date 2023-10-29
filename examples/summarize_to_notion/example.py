@@ -50,10 +50,10 @@ def create_notion_summarizer(data_sources: str, twitter_rules: str):
     orchestrator = Orchestrator(verbose=verbose)
     orchestrator.set_gatherer(gatherer=gatherer)
 
-    # Http service source.
-    http_service_source = HttpService(
-        sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
-    )
+    # # Http service source.
+    # http_service_source = HttpService(
+    #     sink=mq, verbose=verbose, dedup_memory=dedup_memory, truncate_size=200000
+    # )
 
     logger.info(f"Add data sources: {data_sources}")
     for source in data_sources:
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data-sources",
         dest="data_sources",
-        default="http_service,github,arxiv",
+        default="http_service,arxiv,github",
         help="A comma-separated list of data sources to use (default: http_service)",
     )
     parser.add_argument(

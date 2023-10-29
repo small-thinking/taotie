@@ -25,7 +25,7 @@ class Orchestrator:
 
     async def run(self):
         if not self.sources:
-            self.logger.error("No sources are added.")
+            self.logger.error("No sources are added to the orchestrator.")
             return
         if not self.gatherer:
             self.logger.error("No gatherer is set.")
