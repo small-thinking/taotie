@@ -90,7 +90,6 @@ class BaseReporter(ABC):
                     continue
                 for image_url in entry["Image URLs"]:
                     image_files.append(image_url)
-                    break  # only pick one image from each entry
             if len(result_json["results"]) == 0:
                 self.logger.warning("No results found.")
             else:
