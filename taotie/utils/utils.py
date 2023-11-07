@@ -69,6 +69,7 @@ def chat_completion(
     prompt: str,
     content: str,
     max_tokens: int,
+    response_format: Any = {"type": "text"},
     temperature: float = 0.0,
 ) -> str:
     response = openai.ChatCompletion.create(
@@ -81,6 +82,7 @@ def chat_completion(
             {"role": "user", "content": content},
         ],
         max_tokens=max_tokens,
+        response_format=response_format,
         temperature=temperature,
     )
     # refactor the below line by checking the response.choices[0].message.content step by step, and handle the error.
@@ -177,13 +179,13 @@ async def text_to_triplets(
     text_summary: str,
     metadata: Dict[str, Any],
     logger: Optional[Logger] = None,
-    model_type: str = "gpt-3.5-turbo-16k",
-    max_tokens: int = 6000,
+    model_type: str = "gpt-3.5-turbo-1106",
+    max_tokens: int = 4000,
 ):
     if not logger:
         logger = Logger(os.path.basename(__file__))
     load_env()
-    # Call OpenAPI gpt-3.5-turbo-16k with the openai API
+    # Call OpenAPI gpt-3.5-turbo-1106 with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -206,15 +208,19 @@ async def text_to_triplets(
             model=model_type,
             max_tokens=max_tokens,
             temperature=0.1,
+            response_format={"type": "json_object"},
             messages=[
+                {
+                    "role": "system",
+                    "content": "Please generate a brief yet comprehensive knowledge graph in json format with the information.",
+                },
                 {
                     "role": "user",
                     "content": f"""
-                        Please generate a brief yet comprehensive knowledge graph with the information:
                         {text_summary}
                         {metadata_str}
                     """,
-                }
+                },
             ],
             functions=[
                 {
@@ -391,7 +397,7 @@ async def extract_representative_image(
     try:
         readme_response = requests.get(readme_url)
         readme_response.raise_for_status()  # Raise an exception if the request was not successful
-        content = readme_response.text[:6000]
+        content = readme_response.text[:4000]
     except requests.exceptions.RequestException as e:
         print(f"Error retrieving content from URL: {e}")
     if not content:
@@ -408,7 +414,7 @@ async def extract_representative_image(
         """
     logger.info(f"Extracting representative image from {repo_name}.")
     image_url_json_str = chat_completion(
-        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-1106",
         prompt=f"""
         You are an information extractor that is going to extract the representative images according
         to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:
@@ -425,6 +431,7 @@ async def extract_representative_image(
         6. Please DO NOT RETURN any other words OTHER THAN THE JSON ITSELF.
         """,
         content=content,
+        response_format={"type": "json_object"},
         max_tokens=2000,
     )
     # 3. Parse to get the url string.

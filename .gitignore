@@ -132,6 +132,7 @@ dmypy.json
 .vscode/
 test_scripts
 **/completion.py
+**/*.patch
 
 # Personalized files
 **/arxiv_author.json

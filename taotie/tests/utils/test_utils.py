@@ -75,7 +75,7 @@ def test_parse_json(input, expected):
     "model_type, prompt, content, max_tokens, temperature, expected_result",
     [
         (
-            "gpt-3.5-turbo-16k",
+            "gpt-3.5-turbo-1106",
             "Please summarize the following:",
             "Hello, my name is John and I am 30 years old.",
             50,
@@ -83,7 +83,7 @@ def test_parse_json(input, expected):
             "John is a 30 year old.",
         ),
         (
-            "gpt-3.5-turbo-16k",
+            "gpt-3.5-turbo-1106",
             "Please generate a response:",
             "How are you?",
             20,
@@ -126,7 +126,7 @@ def test_chat_completion(
                 "lastUpdated": "2021-09-15",
                 "description": "Test",
             },
-            "gpt-3.5-turbo-16k",
+            "gpt-3.5-turbo-1106",
             6000,
             {
                 "metadata": {

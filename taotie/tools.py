@@ -34,7 +34,7 @@ def parse_args(parser: argparse.ArgumentParser):
     report_parser.add_argument(
         "--model-type",
         type=str,
-        default="gpt-3.5-turbo-16k",
+        default="gpt-3.5-turbo-1106",
         help="Model type for report",
     )
     report_parser.add_argument(
