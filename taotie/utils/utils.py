@@ -81,7 +81,7 @@ def chat_completion(
             },
             {"role": "user", "content": content},
         ],
-        max_tokens=max_tokens,
+        max_tokens=min(4000, max_tokens),
         response_format=response_format,
         temperature=temperature,
     )
@@ -206,7 +206,7 @@ async def text_to_triplets(
     while not succeeded:
         completion = openai.ChatCompletion.create(
             model=model_type,
-            max_tokens=max_tokens,
+            max_tokens=min(4000, max_tokens),
             temperature=0.1,
             response_format={"type": "json_object"},
             messages=[
