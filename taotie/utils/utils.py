@@ -307,7 +307,7 @@ async def text_to_triplets(
         )
         function_call_obj = completion.choices[0].message.function_call
         if hasattr(function_call_obj, "arguments"):
-            response_data = function_call_obj.arguments
+            response_data = getattr(function_call_obj, "arguments")
         else:
             logger.error(f"No arguments from function call.")
             response_data = ""
