@@ -17,14 +17,13 @@ import aiohttp
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import openai
 import pytz  # type: ignore
 import requests  # type: ignore
 import retrying
 from colorama import Fore, ansi
 from dotenv import load_dotenv
 from flask import jsonify
-from rdflib import Graph, Namespace
+from openai import OpenAI
 
 
 def load_env(env_file_path: str = "") -> None:
@@ -71,8 +70,15 @@ def chat_completion(
     max_tokens: int,
     response_format: Any = {"type": "text"},
     temperature: float = 0.0,
+    client: Optional[OpenAI] = None,
 ) -> str:
-    response = openai.ChatCompletion.create(
+    if client is None:
+        client = OpenAI(
+            # defaults to os.environ.get("OPENAI_API_KEY")
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
+
+    response = client.chat.completions.create(
         model=model_type,
         messages=[
             {
@@ -85,22 +91,23 @@ def chat_completion(
         response_format=response_format,
         temperature=temperature,
     )
+    print(response)
     # refactor the below line by checking the response.choices[0].message.content step by step, and handle the error.
-    if "choices" not in response or len(response.get("choices", [])) == 0:
+    if not response.choices or len(response.choices) == 0:
         raise Exception(
-            "Failed to parse choices from openai.ChatCompletion response. The response: {response}"
+            f"Failed to parse choices from openai.ChatCompletion response. The response: {response}"
         )
-    first_choice = response["choices"][0]
-    if "message" not in first_choice:
+    first_choice = response.choices[0]
+    if not first_choice.message:
         raise Exception(
             f"Failed to parse message from openai.ChatCompletion response. The choices block: {first_choice}"
         )
-    message = first_choice.get("message", {})
-    if "content" not in message:
+    message = first_choice.message
+    if not message.content:
         raise Exception(
             f"Failed to parse content openai.ChatCompletion response. The message block: {message}"
         )
-    result = message.get("content", "")
+    result = message.content
     return result
 
 
@@ -181,6 +188,7 @@ async def text_to_triplets(
     logger: Optional[Logger] = None,
     model_type: str = "gpt-3.5-turbo-1106",
     max_tokens: int = 4000,
+    client: Optional[OpenAI] = None,
 ):
     if not logger:
         logger = Logger(os.path.basename(__file__))
@@ -188,7 +196,11 @@ async def text_to_triplets(
     # Call OpenAPI gpt-3.5-turbo-1106 with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+    if not client:
+        client = OpenAI(
+            # defaults to os.environ.get("OPENAI_API_KEY")
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
     if not text_summary:
         return jsonify({"error": "No input provided"}), 400
 
@@ -204,7 +216,7 @@ async def text_to_triplets(
     # Always provide light pastel colors that work well with black font.
     succeeded = False
     while not succeeded:
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model=model_type,
             max_tokens=min(4000, max_tokens),
             temperature=0.1,
@@ -293,8 +305,12 @@ async def text_to_triplets(
             ],
             function_call={"name": "knowledge_graph"},
         )
-
-        response_data = completion.choices[0]["message"]["function_call"]["arguments"]
+        function_call_obj = completion.choices[0].message.function_call
+        if hasattr(function_call_obj, "arguments"):
+            response_data = getattr(function_call_obj, "arguments")
+        else:
+            logger.error(f"No arguments from function call.")
+            response_data = ""
 
         try:
             triplets = json.loads(response_data)
@@ -405,7 +421,6 @@ async def extract_representative_image(
         return ""
     # 2. Extract representative image.
     load_dotenv()
-    openai.api_key = os.getenv("OPENAI_API_KEY")
     content = f"""
         ```
         repo_name: {repo_name}

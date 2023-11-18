@@ -1,9 +1,12 @@
 """Test the utils.
 Run this test with command: pytest taotie/tests/utils/test_utils.py
 """
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+from openai.types.chat import ChatCompletion, ChatCompletionMessage
+from openai.types.chat.chat_completion_message import FunctionCall
+from openai.types.edit import Choice
 
 from taotie.utils.utils import *
 
@@ -95,24 +98,41 @@ def test_parse_json(input, expected):
 def test_chat_completion(
     model_type, prompt, content, max_tokens, temperature, expected_result
 ):
-    with patch("openai.ChatCompletion.create") as mock_create:
-        mock_create.return_value = {
-            "id": "chatcmpl-123",
-            "object": "chat.completion",
-            "created": 1677652288,
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": expected_result,
-                    },
-                    "finish_reason": "stop",
-                }
-            ],
-        }
-        result = chat_completion(model_type, prompt, content, max_tokens, temperature)
-        assert result == expected_result
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "your_mocked_api_key"}):
+        # Mock the OpenAI constructor
+        with patch("openai.OpenAI") as MockOpenAI:
+            mock_openai_instance = MockOpenAI.return_value
+
+            # Set up the mock for chat.completions.create method
+            mock_openai_instance.chat.completions.create.return_value = ChatCompletion(
+                id="chatcmpl-123",
+                created=1677652288,
+                model="gpt-3.5-turbo-1106",
+                object="chat.completion",
+                choices=[
+                    Choice(
+                        message=ChatCompletionMessage(
+                            role="assistant", content=expected_result
+                        ),
+                        finish_reason="stop",
+                        index=0,
+                        text="aaa",
+                    )
+                ],
+            )
+
+            # Call the function under test
+            result = chat_completion(
+                model_type,
+                prompt,
+                content,
+                max_tokens,
+                temperature,
+                client=mock_openai_instance,
+            )
+
+            # Assertions
+            assert result == expected_result
 
 
 @pytest.mark.asyncio
@@ -152,7 +172,26 @@ async def test_text_to_triplets(
 ):
     logger = Logger("test_logger")
     with patch("taotie.utils.utils.chat_completion") as mock_chat_completion:
-        mock_chat_completion.return_value = json.dumps({"triplets": expected_output})
+        # Mock response as an object, not JSON
+        mock_chat_completion.return_value = ChatCompletion(
+            id="chatcmpl-123",
+            created=1677652288,
+            model="gpt-3.5-turbo-1106",
+            object="chat.completion",
+            choices=[
+                Choice(
+                    finish_reason="stop",
+                    index=0,
+                    text="",
+                    message=ChatCompletionMessage(
+                        role="assistant",
+                        function_call=FunctionCall(
+                            name="", arguments=json.dumps(expected_output)
+                        ),
+                    ),
+                )
+            ],
+        )
         result = await text_to_triplets(
             text_summary, metadata, logger, model_type, max_tokens
         )
