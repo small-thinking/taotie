@@ -70,7 +70,7 @@ def chat_completion(
     max_tokens: int,
     response_format: Any = {"type": "text"},
     temperature: float = 0.0,
-    client: OpenAI = None,
+    client: Optional[OpenAI] = None,
 ) -> str:
     if client is None:
         client = OpenAI(
@@ -188,7 +188,7 @@ async def text_to_triplets(
     logger: Optional[Logger] = None,
     model_type: str = "gpt-3.5-turbo-1106",
     max_tokens: int = 4000,
-    client: OpenAI = None,
+    client: Optional[OpenAI] = None,
 ):
     if not logger:
         logger = Logger(os.path.basename(__file__))
@@ -305,7 +305,12 @@ async def text_to_triplets(
             ],
             function_call={"name": "knowledge_graph"},
         )
-        response_data = completion.choices[0].message.function_call.arguments
+        function_call_obj = completion.choices[0].message.function_call
+        if function_call_obj.arguments:
+            response_data = function_call_obj.arguments
+        else:
+            logger.error(f"No arguments from function call.")
+            response_data = ""
 
         try:
             triplets = json.loads(response_data)
