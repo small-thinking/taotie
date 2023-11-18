@@ -17,14 +17,13 @@ import aiohttp
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import openai
 import pytz  # type: ignore
 import requests  # type: ignore
 import retrying
 from colorama import Fore, ansi
 from dotenv import load_dotenv
 from flask import jsonify
-from rdflib import Graph, Namespace
+from openai import OpenAI
 
 
 def load_env(env_file_path: str = "") -> None:
@@ -72,7 +71,12 @@ def chat_completion(
     response_format: Any = {"type": "text"},
     temperature: float = 0.0,
 ) -> str:
-    response = openai.ChatCompletion.create(
+    client = OpenAI(
+        # defaults to os.environ.get("OPENAI_API_KEY")
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
+
+    response = client.chat.completions.create(
         model=model_type,
         messages=[
             {
@@ -188,7 +192,10 @@ async def text_to_triplets(
     # Call OpenAPI gpt-3.5-turbo-1106 with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(
+        # defaults to os.environ.get("OPENAI_API_KEY")
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
     if not text_summary:
         return jsonify({"error": "No input provided"}), 400
 
@@ -204,7 +211,7 @@ async def text_to_triplets(
     # Always provide light pastel colors that work well with black font.
     succeeded = False
     while not succeeded:
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model=model_type,
             max_tokens=min(4000, max_tokens),
             temperature=0.1,
@@ -405,7 +412,6 @@ async def extract_representative_image(
         return ""
     # 2. Extract representative image.
     load_dotenv()
-    openai.api_key = os.getenv("OPENAI_API_KEY")
     content = f"""
         ```
         repo_name: {repo_name}

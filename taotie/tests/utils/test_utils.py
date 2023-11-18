@@ -95,7 +95,7 @@ def test_parse_json(input, expected):
 def test_chat_completion(
     model_type, prompt, content, max_tokens, temperature, expected_result
 ):
-    with patch("openai.ChatCompletion.create") as mock_create:
+    with patch("client.chat.completions.create") as mock_create:
         mock_create.return_value = {
             "id": "chatcmpl-123",
             "object": "chat.completion",
