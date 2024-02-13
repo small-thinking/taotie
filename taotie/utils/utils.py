@@ -73,9 +73,10 @@ def chat_completion(
     client: Optional[OpenAI] = None,
 ) -> str:
     if client is None:
+        load_env()
         client = OpenAI(
             # defaults to os.environ.get("OPENAI_API_KEY")
-            api_key=os.getenv("OPENAI_API_KEY"),
+            # api_key=os.environ.get("OPENAI_API_KEY"),
         )
 
     response = client.chat.completions.create(
@@ -186,14 +187,14 @@ async def text_to_triplets(
     text_summary: str,
     metadata: Dict[str, Any],
     logger: Optional[Logger] = None,
-    model_type: str = "gpt-3.5-turbo-1106",
+    model_type: str = "gpt-3.5-turbo-0125",
     max_tokens: int = 4000,
     client: Optional[OpenAI] = None,
 ):
     if not logger:
         logger = Logger(os.path.basename(__file__))
     load_env()
-    # Call OpenAPI gpt-3.5-turbo-1106 with the openai API
+    # Call OpenAPI gpt-3.5-turbo-0125 with the openai API
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Please set OPENAI_API_KEY in .env.")
     if not client:
@@ -429,7 +430,7 @@ async def extract_representative_image(
         """
     logger.info(f"Extracting representative image from {repo_name}.")
     image_url_json_str = chat_completion(
-        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo-0125",
         prompt=f"""
         You are an information extractor that is going to extract the representative images according
         to the content of the markdown file given in the triple quotes. Please strictly follow the requirement, ONE by ONE:

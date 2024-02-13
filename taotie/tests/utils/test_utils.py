@@ -1,12 +1,11 @@
 """Test the utils.
-Run this test with command: pytest taotie/tests/utils/test_utils.py
+Run this test with command: poetry run pytest taotie/tests/utils/test_utils.py
 """
-from unittest.mock import MagicMock, patch
+
+from unittest.mock import patch
 
 import pytest
-from openai.types.chat import ChatCompletion, ChatCompletionMessage
-from openai.types.chat.chat_completion_message import FunctionCall
-from openai.types.edit import Choice
+from openai.types.chat import ChatCompletion
 
 from taotie.utils.utils import *
 
@@ -78,7 +77,7 @@ def test_parse_json(input, expected):
     "model_type, prompt, content, max_tokens, temperature, expected_result",
     [
         (
-            "gpt-3.5-turbo-1106",
+            "gpt-3.5-turbo-0125",
             "Please summarize the following:",
             "Hello, my name is John and I am 30 years old.",
             50,
@@ -86,7 +85,7 @@ def test_parse_json(input, expected):
             "John is a 30 year old.",
         ),
         (
-            "gpt-3.5-turbo-1106",
+            "gpt-3.5-turbo-0125",
             "Please generate a response:",
             "How are you?",
             20,
@@ -107,17 +106,15 @@ def test_chat_completion(
             mock_openai_instance.chat.completions.create.return_value = ChatCompletion(
                 id="chatcmpl-123",
                 created=1677652288,
-                model="gpt-3.5-turbo-1106",
+                model="gpt-3.5-turbo-0125",
                 object="chat.completion",
                 choices=[
-                    Choice(
-                        message=ChatCompletionMessage(
-                            role="assistant", content=expected_result
-                        ),
-                        finish_reason="stop",
-                        index=0,
-                        text="aaa",
-                    )
+                    {
+                        "message": {"role": "assistant", "content": expected_result},
+                        "finish_reason": "stop",
+                        "index": 0,
+                        "text": "aaa",
+                    }
                 ],
             )
 
@@ -146,7 +143,7 @@ def test_chat_completion(
                 "lastUpdated": "2021-09-15",
                 "description": "Test",
             },
-            "gpt-3.5-turbo-1106",
+            "gpt-3.5-turbo-0125",
             6000,
             {
                 "metadata": {
@@ -174,23 +171,27 @@ async def test_text_to_triplets(
     with patch("taotie.utils.utils.chat_completion") as mock_chat_completion:
         # Mock response as an object, not JSON
         mock_chat_completion.return_value = ChatCompletion(
-            id="chatcmpl-123",
-            created=1677652288,
-            model="gpt-3.5-turbo-1106",
-            object="chat.completion",
-            choices=[
-                Choice(
-                    finish_reason="stop",
-                    index=0,
-                    text="",
-                    message=ChatCompletionMessage(
-                        role="assistant",
-                        function_call=FunctionCall(
-                            name="", arguments=json.dumps(expected_output)
-                        ),
-                    ),
-                )
-            ],
+            **{
+                "id": "chatcmpl-123",
+                "created": 1677652288,
+                "model": "gpt-3.5-turbo-0125",
+                "object": "chat.completion",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "aaa",
+                            "function_call": {
+                                "name": "",
+                                "arguments": json.dumps(expected_output),
+                            },
+                            "tool_calls": [],
+                        },
+                    }
+                ],
+            }
         )
         result = await text_to_triplets(
             text_summary, metadata, logger, model_type, max_tokens

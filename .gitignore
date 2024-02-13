@@ -133,6 +133,7 @@ dmypy.json
 test_scripts
 **/completion.py
 **/*.patch
+**/temp/**
 
 # Personalized files
 **/arxiv_author.json

@@ -22,7 +22,8 @@ class BaseReporter(ABC):
         verbose: bool = False,
     ):
         """Initialize the knowledge reporter."""
-        load_dotenv()
+        load_env()
+        # Print OPENAI_API_KEY
         self.knowledge_source_uri = knowledge_source_uri
         self.verbose = verbose
         self.logger = Logger(os.path.basename(__file__), verbose=verbose)

@@ -41,8 +41,8 @@ class NotionReporter(BaseReporter):
         # Model configs.
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Please set OPENAI_API_KEY in .env.")
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-16k")
+        # openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-0125")
         # Prompt.
         language = kwargs.get("language", "English")
         if "github-repo" in self.topic_filters:
@@ -238,7 +238,7 @@ class NotionReporter(BaseReporter):
         '''
         """
         # Truncate.
-        truncate_size = 12000 if self.model_type == "gpt-3.5-turbo-16k" else 7000
+        truncate_size = 12000 if self.model_type == "gpt-3.5-turbo-0125" else 7000
         content_prompt = content_prompt[:truncate_size]
         self.logger.output(f"Content prompt: {content_prompt}")
         # Rough estimation of remaining tokens for generation.
@@ -253,5 +253,6 @@ class NotionReporter(BaseReporter):
             content=content_prompt,
             max_tokens=max_tokens,
             temperature=0.5,
+            response_format={"type": "json_object"},
         )
         return result
