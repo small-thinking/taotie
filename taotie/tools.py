@@ -34,7 +34,7 @@ def parse_args(parser: argparse.ArgumentParser):
     report_parser.add_argument(
         "--model-type",
         type=str,
-        default="gpt-3.5-turbo-1106",
+        default="gpt-3.5-turbo-0125",
         help="Model type for report",
     )
     report_parser.add_argument(
@@ -54,10 +54,12 @@ def parse_args(parser: argparse.ArgumentParser):
 
 async def run_notion_reporter(args: argparse.Namespace):
     """Run the script to generate the notion report."""
-    load_dotenv()
-    database_id = os.environ.get("NOTION_DATABASE_ID")
+    # Unset OPENAI_API_KEY
+    load_env()
+    # Print out OPENAI_API_KEY
+    database_id = os.environ.get("NOTION_TT_DATABASE_ID")
     if not database_id:
-        raise ValueError("NOTION_DATABASE_ID not found in environment")
+        raise ValueError("NOTION_TT_DATABASE_ID not found in environment")
     type_filters = args.type_filters.split(",")
     topic_filters = args.topic_filters.split(",")
     reporter = NotionReporter(
@@ -78,7 +80,6 @@ async def run_notion_reporter(args: argparse.Namespace):
 
 
 if __name__ == "__main__":
-    load_dotenv()
     parser = argparse.ArgumentParser(
         description="Argument Parser for Report and Delete Key"
     )

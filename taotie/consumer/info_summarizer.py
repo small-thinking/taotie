@@ -63,7 +63,7 @@ class InfoSummarizer(Consumer):
             }}
             """
         self.max_tokens = kwargs.get("max_tokens", 3000)
-        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-1106")
+        self.model_type = kwargs.get("model_type", "gpt-3.5-turbo-0125")
         self.logger.debug("PrintConsumer initialized.")
 
     async def _process(self, messages: List[Dict[str, Any]]) -> None:
